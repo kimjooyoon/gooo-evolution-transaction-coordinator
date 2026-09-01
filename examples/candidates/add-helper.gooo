@@ -6,4 +6,4 @@ effect pre=READ_INPUT post=WRITE_CALLER_OUTPUT
 footprint read=compiler/main.go write=compiler/generated/helper.go
 precondition base=compiler-fixture-v1
 postcondition artifact=helper-beta
-operation kind=append artifact=compiler/generated/helper.go value=const_HelperBeta=true success_terminal=DISJOINT_PERMUTATIONS_EXACT
+operation kind=append artifact=compiler/generated/helper.go value="const HelperBeta = true" success_terminal=DISJOINT_PERMUTATIONS_EXACT

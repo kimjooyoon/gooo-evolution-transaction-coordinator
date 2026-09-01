@@ -6,4 +6,4 @@ effect pre=READ_INPUT post=WRITE_CALLER_OUTPUT
 footprint read=compiler/main.go write=compiler/generated/mode.go
 precondition base=compiler-fixture-v1
 postcondition artifact=mode-b
-operation kind=set artifact=compiler/generated/mode.go value=const_ModeB=true success_terminal=EXPLICIT_FOOTPRINT_CONFLICT
+operation kind=set artifact=compiler/generated/mode.go value="const ModeB = true" success_terminal=EXPLICIT_FOOTPRINT_CONFLICT

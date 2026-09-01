@@ -55,7 +55,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           pattern: gooo-evolution-transaction-coordinator-evidence-*
-          path: "$RUNNER_TEMP/downloaded-evidence"
+          path: ${{ runner.temp }}/downloaded-evidence
           merge-multiple: true
       - name: Run semantic audit
         run: bash scripts/semantic-audit.sh "$RUNNER_TEMP/downloaded-evidence"
