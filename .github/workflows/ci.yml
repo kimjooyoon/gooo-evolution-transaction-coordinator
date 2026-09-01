@@ -64,7 +64,6 @@ jobs:
     needs: semantic-audit
     runs-on: ubuntu-latest
     permissions:
-      administration: read
       contents: read
     steps:
       - uses: actions/checkout@v4
