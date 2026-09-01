@@ -16,7 +16,11 @@ case "$mode" in
     set -e
     if [ "$status" -ne 0 ]; then
       error=$(tr '\n' ' ' <"$error_file")
-      printf 'release boundary: setting unavailable reason=ADMINISTRATION_READ_UNAVAILABLE status=%s error=%s\n' "$status" "$error" >&2
+      reason=ADMINISTRATION_READ_UNAVAILABLE
+      case "$error" in
+        *"HTTP 403"*) reason=ADMINISTRATION_READ_FORBIDDEN ;;
+      esac
+      printf 'release boundary: setting unavailable reason=%s status=%s error=%s\n' "$reason" "$status" "$error" >&2
       exit 1
     fi
     response=$(cat "$response_file")

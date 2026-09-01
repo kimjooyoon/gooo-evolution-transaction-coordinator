@@ -35,7 +35,7 @@ jobs:
         run: bash scripts/verify-release-boundary.sh tag "$RELEASE_TAG" "$RELEASE_COMMIT"
       - name: Verify release setting before publication
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.RELEASE_BOUNDARY_TOKEN }}
         run: bash scripts/verify-release-boundary.sh setting
       - name: Verify Go 1.27 and build evaluator
         run: |
@@ -70,7 +70,7 @@ jobs:
         run: gh release edit "$RELEASE_TAG" --draft=false
       - name: Verify immutable published release, tag target, and asset digests
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.RELEASE_BOUNDARY_TOKEN }}
           RELEASE_TAG: ${{ inputs.tag }}
           RELEASE_COMMIT: ${{ inputs.commit }}
         run: bash scripts/verify-release-boundary.sh release "$RELEASE_TAG" "$RELEASE_COMMIT"

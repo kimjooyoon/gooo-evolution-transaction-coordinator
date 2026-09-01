@@ -69,5 +69,5 @@ jobs:
       - uses: actions/checkout@v4
       - name: Verify immutable releases setting
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.RELEASE_BOUNDARY_TOKEN }}
         run: bash scripts/verify-release-boundary.sh setting
