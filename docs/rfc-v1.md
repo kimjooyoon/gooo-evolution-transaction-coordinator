@@ -50,3 +50,12 @@ excluded, Go/Gooo file counts, physical lines, promoted generated file/byte
 counts, wall milliseconds, peak RSS KiB, and the exact test cardinalities.
 All counts are integers. The evaluator's repository and local-test authority
 remain zero.
+
+## Release boundary
+
+GitHub repository release immutability is an external prerequisite. The CI
+release-boundary job calls the repository immutable-releases API and fails
+closed on a missing endpoint, a false `enabled` value, or an unavailable
+administration read. A future release is valid only when its Release API object
+reports `immutable=true` and each uploaded asset has a sha256 digest. Existing
+releases are never rewritten to repair a historical immutability value.
