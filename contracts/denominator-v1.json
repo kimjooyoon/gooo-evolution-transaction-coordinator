@@ -1,0 +1,16 @@
+{
+  "schema": "gooo/evolution-transaction-coordinator/denominator/v1",
+  "id": "evolution-transaction-coordinator-v1",
+  "version": "v1",
+  "cell_count": 7,
+  "fixed": true,
+  "cases": [
+    {"ordinal": 1, "id": "case-01-disjoint-commuting", "kind": "disjoint_footprint", "expected": "CLOSED"},
+    {"ordinal": 2, "id": "case-02-overlapping-equivalent", "kind": "overlapping_equivalent", "expected": "CLOSED"},
+    {"ordinal": 3, "id": "case-03-explicit-footprint-conflict", "kind": "explicit_footprint_conflict", "expected": "REFUTED"},
+    {"ordinal": 4, "id": "case-04-order-dependent-terminal-reason", "kind": "order_dependent_terminal_reason", "expected": "REFUTED"},
+    {"ordinal": 5, "id": "case-05-forbidden-combined-effect", "kind": "forbidden_combined_effect", "expected": "REFUTED"},
+    {"ordinal": 6, "id": "case-06-missing-footprint", "kind": "missing_footprint", "expected": "UNKNOWN"},
+    {"ordinal": 7, "id": "case-07-replay", "kind": "replay", "expected": "CLOSED"}
+  ]
+}

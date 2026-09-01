@@ -1,0 +1,9 @@
+gooo rewrite_candidate v1
+candidate id=add-helper type=typed_go_rewrite version=v1
+origin author=beta source=proposal-beta
+capability typed_rewrite
+effect pre=READ_INPUT post=WRITE_CALLER_OUTPUT
+footprint read=compiler/main.go write=compiler/generated/helper.go
+precondition base=compiler-fixture-v1
+postcondition artifact=helper-beta
+operation kind=append artifact=compiler/generated/helper.go value=const_HelperBeta=true success_terminal=DISJOINT_PERMUTATIONS_EXACT

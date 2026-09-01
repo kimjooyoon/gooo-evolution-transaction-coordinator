@@ -1,0 +1,9 @@
+gooo rewrite_candidate v1
+candidate id=emit-repository-write type=typed_go_rewrite version=v1
+origin author=beta source=proposal-forbidden-effect
+capability typed_rewrite REPOSITORY_WRITE
+effect pre=READ_INPUT post=REPOSITORY_WRITE
+footprint read=compiler/main.go write=compiler/generated/forbidden.go
+precondition base=compiler-fixture-v1
+postcondition artifact=forbidden-effect
+operation kind=append artifact=compiler/generated/forbidden.go value=const_Forbidden=true success_terminal=FORBIDDEN_COMBINED_EFFECT

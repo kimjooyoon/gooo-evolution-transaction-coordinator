@@ -1,0 +1,9 @@
+gooo rewrite_candidate v1
+candidate id=set-banner-b type=typed_go_rewrite version=v1
+origin author=beta source=proposal-banner-b
+capability typed_rewrite
+effect pre=READ_INPUT post=WRITE_CALLER_OUTPUT
+footprint read=compiler/main.go write=compiler/generated/banner.go
+precondition base=compiler-fixture-v1
+postcondition artifact=banner-shared
+operation kind=set artifact=compiler/generated/banner.go value=const_BannerShared=true success_terminal=OVERLAPPING_PERMUTATIONS_EXACT

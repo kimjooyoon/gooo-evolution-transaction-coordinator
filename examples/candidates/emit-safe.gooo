@@ -1,0 +1,9 @@
+gooo rewrite_candidate v1
+candidate id=emit-safe type=typed_go_rewrite version=v1
+origin author=alpha source=proposal-safe-effect
+capability typed_rewrite
+effect pre=READ_INPUT post=WRITE_CALLER_OUTPUT
+footprint read=compiler/main.go write=compiler/generated/safe.go
+precondition base=compiler-fixture-v1
+postcondition artifact=safe-effect
+operation kind=append artifact=compiler/generated/safe.go value=const_Safe=true success_terminal=FORBIDDEN_COMBINED_EFFECT

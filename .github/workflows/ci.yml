@@ -1,0 +1,61 @@
+name: Evolution transaction coordinator CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  conformance:
+    runs-on: ubuntu-latest
+    env:
+      SUBJECT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SUBJECT_SHA }}
+      - uses: actions/setup-go@v6
+        with:
+          go-version: 1.27.0
+          cache: false
+      - name: Verify Go 1.27
+        run: test "$(go env GOVERSION)" = "go1.27.0"
+      - name: Verify formatting
+        shell: bash
+        run: |
+          set -euo pipefail
+          files=$(gofmt -l $(git ls-files '*.go'))
+          test -z "$files"
+      - name: Verify vet
+        run: go vet ./...
+      - name: Verify tests
+        run: go test ./...
+      - name: Verify build
+        run: go build -trimpath -o "$RUNNER_TEMP/gooo-evolution-transaction-coordinator-bin" ./cmd/gooo-evolution-transaction-coordinator
+      - name: Run generated transaction conformance
+        run: bash scripts/conformance.sh "$RUNNER_TEMP/gooo-evolution-transaction-coordinator-bin"
+      - name: Publish human receipt
+        run: cat "$RUNNER_TEMP/gooo-evolution-transaction-coordinator-evidence/coordinator-report.md" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: gooo-evolution-transaction-coordinator-evidence-${{ github.run_id }}
+          path: ${{ runner.temp }}/gooo-evolution-transaction-coordinator-evidence
+          if-no-files-found: error
+
+  semantic-audit:
+    needs: conformance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: gooo-evolution-transaction-coordinator-evidence-*
+          path: "$RUNNER_TEMP/downloaded-evidence"
+          merge-multiple: true
+      - name: Run semantic audit
+        run: bash scripts/semantic-audit.sh "$RUNNER_TEMP/downloaded-evidence"
