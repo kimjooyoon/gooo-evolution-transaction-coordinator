@@ -6,4 +6,4 @@ effect pre=READ_INPUT post=WRITE_CALLER_OUTPUT
 footprint read=compiler/main.go write=compiler/generated/safe.go
 precondition base=compiler-fixture-v1
 postcondition artifact=safe-effect
-operation kind=append artifact=compiler/generated/safe.go value=const_Safe=true success_terminal=FORBIDDEN_COMBINED_EFFECT
+operation kind=append artifact=compiler/generated/safe.go value="const Safe = true" success_terminal=FORBIDDEN_COMBINED_EFFECT

@@ -6,4 +6,4 @@ effect pre=READ_INPUT post=WRITE_CALLER_OUTPUT
 footprint read=compiler/main.go write=compiler/generated/label.go
 precondition base=compiler-fixture-v1
 postcondition artifact=label-alpha
-operation kind=append artifact=compiler/generated/label.go value=const_LabelAlpha=true success_terminal=DISJOINT_PERMUTATIONS_EXACT
+operation kind=append artifact=compiler/generated/label.go value="const LabelAlpha = true" success_terminal=DISJOINT_PERMUTATIONS_EXACT

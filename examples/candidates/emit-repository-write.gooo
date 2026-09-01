@@ -6,4 +6,4 @@ effect pre=READ_INPUT post=REPOSITORY_WRITE
 footprint read=compiler/main.go write=compiler/generated/forbidden.go
 precondition base=compiler-fixture-v1
 postcondition artifact=forbidden-effect
-operation kind=append artifact=compiler/generated/forbidden.go value=const_Forbidden=true success_terminal=FORBIDDEN_COMBINED_EFFECT
+operation kind=append artifact=compiler/generated/forbidden.go value="const Forbidden = true" success_terminal=FORBIDDEN_COMBINED_EFFECT

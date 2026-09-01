@@ -5,4 +5,4 @@ capability typed_rewrite
 effect pre=READ_INPUT post=WRITE_CALLER_OUTPUT
 precondition base=compiler-fixture-v1
 postcondition artifact=missing-footprint
-operation kind=append artifact=compiler/generated/missing.go value=const_Missing=true success_terminal=MISSING_SEMANTIC_FOOTPRINT
+operation kind=append artifact=compiler/generated/missing.go value="const Missing = true" success_terminal=MISSING_SEMANTIC_FOOTPRINT

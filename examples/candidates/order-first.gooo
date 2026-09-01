@@ -6,4 +6,4 @@ effect pre=READ_INPUT post=WRITE_CALLER_OUTPUT
 footprint read=compiler/main.go write=compiler/generated/order.go
 precondition base=compiler-fixture-v1
 postcondition artifact=order-first
-operation kind=append artifact=compiler/generated/order.go value=const_OrderFirst=true success_terminal=ORDER_DEPENDENCY_SATISFIED
+operation kind=append artifact=compiler/generated/order.go value="const OrderFirst = true" success_terminal=ORDER_DEPENDENCY_SATISFIED

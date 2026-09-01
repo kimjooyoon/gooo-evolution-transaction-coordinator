@@ -463,7 +463,7 @@ func emitBundle(context *runContext, declared CaseDecl, candidates []Candidate) 
 		fmt.Fprintf(&builder, "origin author=%s source=%s\n", candidate.Origin.Author, candidate.Origin.Source)
 		fmt.Fprintf(&builder, "footprint read=%s write=%s\n", strings.Join(candidate.ReadFootprint, ","), strings.Join(candidate.WriteFootprint, ","))
 		fmt.Fprintf(&builder, "effect pre=%s post=%s\n", strings.Join(candidate.EffectPre, ","), strings.Join(candidate.EffectPost, ","))
-		fmt.Fprintf(&builder, "operation kind=%s artifact=%s value=%s\n", candidate.Operation.Kind, candidate.Operation.Artifact, candidate.Operation.Value)
+		fmt.Fprintf(&builder, "operation kind=%s artifact=%s value=\"%s\"\n", candidate.Operation.Kind, candidate.Operation.Artifact, candidate.Operation.Value)
 	}
 	content := []byte(builder.String())
 	if err := os.WriteFile(absolute, content, 0o644); err != nil {
