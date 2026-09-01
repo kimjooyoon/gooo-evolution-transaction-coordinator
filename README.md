@@ -74,5 +74,7 @@ formatting, vet, tests, build, generated conformance, and the separate
 semantic audit. Every PR also has a fail-closed release-boundary job that
 requires the GitHub immutable-releases repository setting. A release tag is
 accepted only after the Release API reports `immutable=true` and every asset
-has a sha256 digest. Local validation is intentionally not used for release
-claims.
+has a sha256 digest. The manual immutable-release workflow creates a draft,
+uploads the CI evidence asset, publishes once, and then verifies the immutable
+Release API object and exact annotated-tag target. Local validation is
+intentionally not used for release claims.

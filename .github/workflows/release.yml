@@ -1,0 +1,76 @@
+name: Immutable release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing annotated tag to release
+        required: true
+        type: string
+      commit:
+        description: Exact commit targeted by the annotated tag
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+          fetch-depth: 0
+      - uses: actions/setup-go@v6
+        with:
+          go-version: 1.27.0
+          cache: false
+      - name: Verify exact annotated tag target
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_COMMIT: ${{ inputs.commit }}
+        run: bash scripts/verify-release-boundary.sh tag "$RELEASE_TAG" "$RELEASE_COMMIT"
+      - name: Verify release setting before publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/verify-release-boundary.sh setting
+      - name: Verify Go 1.27 and build evaluator
+        run: |
+          test "$(go env GOVERSION)" = "go1.27.0"
+          go vet ./...
+          go test ./...
+          go build -trimpath -o "$RUNNER_TEMP/gooo-evolution-transaction-coordinator-bin" ./cmd/gooo-evolution-transaction-coordinator
+      - name: Generate CI evidence asset
+        run: bash scripts/conformance.sh "$RUNNER_TEMP/gooo-evolution-transaction-coordinator-bin"
+      - name: Package evidence
+        id: package
+        run: |
+          asset="$RUNNER_TEMP/gooo-evolution-transaction-coordinator-${{ inputs.tag }}-ci-evidence.tgz"
+          tar -czf "$asset" -C "$RUNNER_TEMP/gooo-evolution-transaction-coordinator-evidence" .
+          echo "asset=$asset" >> "$GITHUB_OUTPUT"
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_COMMIT: ${{ inputs.commit }}
+        run: |
+          gh release create "$RELEASE_TAG" --draft --verify-tag --title "$RELEASE_TAG" --notes "Immutable release for $RELEASE_TAG at $RELEASE_COMMIT."
+      - name: Upload evidence asset to draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: gh release upload "$RELEASE_TAG" "${{ steps.package.outputs.asset }}"
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: gh release edit "$RELEASE_TAG" --draft=false
+      - name: Verify immutable published release, tag target, and asset digests
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_COMMIT: ${{ inputs.commit }}
+        run: bash scripts/verify-release-boundary.sh release "$RELEASE_TAG" "$RELEASE_COMMIT"
