@@ -59,3 +59,16 @@ jobs:
           merge-multiple: true
       - name: Run semantic audit
         run: bash scripts/semantic-audit.sh "$RUNNER_TEMP/downloaded-evidence"
+
+  release-boundary:
+    needs: semantic-audit
+    runs-on: ubuntu-latest
+    permissions:
+      administration: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify immutable releases setting
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/verify-release-boundary.sh setting
