@@ -292,7 +292,7 @@ func preflight(meta MetaSource, candidates []Candidate) (string, string, *Unknow
 func executePermutation(context *runContext, declared CaseDecl, candidates []Candidate, rule RuleDecl, order []string, pass string) (PermutationResult, error) {
 	name := fmt.Sprintf("%02d-%s-%s-%s", declared.Ordinal, safeName(declared.ID), pass, safeName(strings.Join(order, "_")))
 	fixturePath := filepath.Join(context.FixtureRoot, name)
-	if err := copyFixture(context.TemplateRoot, fixturePath); err != nil {
+	if err := copyFixture(context.TemplateRoot, filepath.Join(fixturePath, "compiler")); err != nil {
 		return PermutationResult{}, err
 	}
 	state := fixtureState{Files: map[string][]byte{}, Appended: map[string][]string{}, Applied: []string{}, EffectTrace: []string{}}
