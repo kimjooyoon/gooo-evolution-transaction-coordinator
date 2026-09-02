@@ -6,8 +6,8 @@ repository_identity github.com/kimjooyoon/gooo-evolution-transaction-coordinator
 repository_writer beta-mode
 read_set compiler/main.go
 write_set compiler/generated/mode.go
-immutable_input_release repository=github.com/kimjooyoon/gooo-evolution-transaction-coordinator tag=v0.1.1 digest=sha256:9a83bccb0f6bd947d7d621a3a3f3f4059a505ebd7958d077ddd9c692e0ecf02b
-expected_output_release repository=github.com/kimjooyoon/gooo-evolution-transaction-coordinator tag=v0.2.1 digest=sha256:pending-v0.2.1
+immutable_input_release repository=github.com/kimjooyoon/gooo-evolution-transaction-coordinator tag=v0.2.1 digest=sha256:709795a9c93745f575386e42f45e430483c3198a314540d75f96f26a6b67d0eb
+expected_output_release repository=github.com/kimjooyoon/gooo-evolution-transaction-coordinator tag=v0.2.2 digest=sha256:pending-v0.2.2
 adoption_target none
 capability typed_rewrite
 effect pre=READ_INPUT post=WRITE_CALLER_OUTPUT

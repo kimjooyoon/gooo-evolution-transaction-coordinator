@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"runtime"
 	"sort"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -145,23 +146,20 @@ func Run(input RunInput) (Evidence, error) {
 	if wallMS < 1 {
 		wallMS = 1
 	}
+	peakRSS := peakRSSKiB()
 	metrics := Metrics{
 		WallMS:           wallMS,
-		PeakRSSKiB:       peakRSSKiB(),
+		PeakRSSKiB:       peakRSS,
 		Inventory:        inventory,
 		Generated:        GeneratedMetrics{Files: len(context.BundleNames), Bytes: context.BundleBytes},
 		Tests:            TestMetrics{Total: FixedCaseCount, Selected: len(results), Executed: len(results), Reused: replayCount(results), Failed: summary.Refuted, Unknown: summary.Unknown},
 		ImprovementState: "UNKNOWN",
+		Local:            LocalMetrics{WallMS: wallMS, PeakRSSKiB: peakRSS},
+		CI:               currentCIMetrics(),
 	}
-	if improvement := observedImprovement(candidates); improvement != nil {
-		metrics.SequentialWaveCount = improvement.SequentialWaveCount
-		metrics.ParallelWaveCount = improvement.ParallelWaveCount
-		metrics.CriticalPath = improvement.CriticalPath
-		metrics.CIWallMS = improvement.CIWallMS
-		metrics.CIBuildMS = improvement.CIBuildMS
-		metrics.CITestMS = improvement.CITestMS
-		metrics.ImprovementState = "OBSERVED"
-		metrics.Improvement = improvement
+	incidents, err := buildIncidentEvidence(meta.Incidents)
+	if err != nil {
+		return Evidence{}, err
 	}
 	artifactNames := append([]string{}, context.BundleNames...)
 	artifactNames = append(artifactNames, "coordinator-report.md", "evidence.json")
@@ -171,7 +169,7 @@ func Run(input RunInput) (Evidence, error) {
 		ContractDigest: context.ContractDigest, EvaluatorDigest: context.EvaluatorDigest,
 		Precedence: append([]string{}, meta.Precedence...), UnknownFields: append([]string{}, meta.UnknownFields...),
 		DenominatorID: meta.Denominator.ID, FixedCaseCount: FixedCaseCount, Summary: summary,
-		Candidates: candidates, Cases: results, Metrics: metrics,
+		Candidates: candidates, Cases: results, Incidents: incidents, Metrics: metrics,
 		Authority:     Authority{RepositoryWrites: 0, SourceMutations: 0, CommitAuthority: 0, MergeAuthority: 0, ReleaseMutation: 0, LocalTestExecutions: 0, OperatorAuthoring: 0, CIRuntimeAuthority: 0, LocalFormatExecutions: 3},
 		ArtifactNames: artifactNames, ArtifactCount: len(artifactNames), AtomicAbortRule: meta.AtomicAbort, BundleRule: meta.Bundle,
 		OperationalIncidents: []string{"OPERATIONAL_REFUTED", "LOCAL_FORMAT_EXECUTED"},
@@ -183,6 +181,109 @@ func Run(input RunInput) (Evidence, error) {
 		return Evidence{}, err
 	}
 	return evidence, nil
+}
+
+func currentCIMetrics() CIMetrics {
+	metrics := CIMetrics{State: "UNKNOWN", Source: "local", Reason: "CI_RUN_CONTEXT_ABSENT"}
+	if os.Getenv("GITHUB_ACTIONS") == "true" {
+		metrics.Source = "github-actions"
+		metrics.Reason = "CI_TIMINGS_NOT_AVAILABLE_AT_EVIDENCE_GENERATION"
+	}
+	if value := os.Getenv("GITHUB_RUN_ID"); value != "" {
+		if runID, err := strconv.ParseInt(value, 10, 64); err == nil {
+			metrics.RunID = &runID
+		}
+	}
+	if value := os.Getenv("GITHUB_SHA"); value != "" {
+		metrics.CommitSHA = optionalStringValue(value)
+	}
+	return metrics
+}
+
+func buildIncidentEvidence(declarations []IncidentDecl) ([]IncidentEvidence, error) {
+	result := make([]IncidentEvidence, 0, len(declarations))
+	for _, declaration := range declarations {
+		releaseID, err := optionalInt64Value(declaration.ReleaseID)
+		if err != nil {
+			return nil, fmt.Errorf("incident %q release id: %w", declaration.ID, err)
+		}
+		releaseImmutable, err := optionalBoolValue(declaration.ReleaseImmutable)
+		if err != nil {
+			return nil, fmt.Errorf("incident %q release immutable flag: %w", declaration.ID, err)
+		}
+		prNumber, err := optionalIntValue(declaration.PRNumber)
+		if err != nil {
+			return nil, fmt.Errorf("incident %q PR number: %w", declaration.ID, err)
+		}
+		prRunID, err := optionalInt64Value(declaration.PRRunID)
+		if err != nil {
+			return nil, fmt.Errorf("incident %q PR run id: %w", declaration.ID, err)
+		}
+		runID, err := optionalInt64Value(declaration.RunID)
+		if err != nil {
+			return nil, fmt.Errorf("incident %q run id: %w", declaration.ID, err)
+		}
+		mainRunID, err := optionalInt64Value(declaration.MainRunID)
+		if err != nil {
+			return nil, fmt.Errorf("incident %q main run id: %w", declaration.ID, err)
+		}
+		receiptAssetID, err := optionalInt64Value(declaration.ReceiptAssetID)
+		if err != nil {
+			return nil, fmt.Errorf("incident %q receipt asset id: %w", declaration.ID, err)
+		}
+		result = append(result, IncidentEvidence{
+			ID: declaration.ID, Kind: declaration.Kind, State: declaration.State,
+			Release: IncidentReleaseIdentity{
+				Repository: optionalStringValue(declaration.ReleaseRepository), Tag: optionalStringValue(declaration.ReleaseTag), ReleaseID: releaseID, Immutable: releaseImmutable,
+				TagObjectSHA: optionalStringValue(declaration.ReleaseTagObjectSHA), CommitSHA: optionalStringValue(declaration.ReleaseCommitSHA), URL: optionalStringValue(declaration.ReleaseURL),
+			},
+			PullRequest: IncidentPullRequestIdentity{Number: prNumber, URL: optionalStringValue(declaration.PRURL), HeadSHA: optionalStringValue(declaration.PRHeadSHA), RunID: prRunID, RunURL: optionalStringValue(declaration.PRRunURL)},
+			Merge:       IncidentMergeIdentity{CommitSHA: optionalStringValue(declaration.MergeCommitSHA), URL: optionalStringValue(declaration.MergeURL)},
+			Run:         IncidentRunIdentity{ID: runID, Workflow: optionalStringValue(declaration.RunWorkflow), Event: optionalStringValue(declaration.RunEvent), Conclusion: optionalStringValue(declaration.RunConclusion), HeadSHA: optionalStringValue(declaration.RunSHA), URL: optionalStringValue(declaration.RunURL), MainID: mainRunID, MainURL: optionalStringValue(declaration.MainRunURL)},
+			Receipt:     IncidentReceiptIdentity{AssetID: receiptAssetID, Name: optionalStringValue(declaration.ReceiptName), Digest: optionalStringValue(declaration.ReceiptDigest), URL: optionalStringValue(declaration.ReceiptURL)},
+		})
+	}
+	return result, nil
+}
+
+func optionalStringValue(value string) *string {
+	if value == "" || value == "null" {
+		return nil
+	}
+	return &value
+}
+
+func optionalIntValue(value string) (*int, error) {
+	if value == "" || value == "null" {
+		return nil, nil
+	}
+	parsed, err := strconv.Atoi(value)
+	if err != nil {
+		return nil, err
+	}
+	return &parsed, nil
+}
+
+func optionalInt64Value(value string) (*int64, error) {
+	if value == "" || value == "null" {
+		return nil, nil
+	}
+	parsed, err := strconv.ParseInt(value, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	return &parsed, nil
+}
+
+func optionalBoolValue(value string) (*bool, error) {
+	if value == "" || value == "null" {
+		return nil, nil
+	}
+	parsed, err := strconv.ParseBool(value)
+	if err != nil {
+		return nil, err
+	}
+	return &parsed, nil
 }
 
 func evaluateCase(context *runContext, declared CaseDecl) (CaseResult, error) {
@@ -204,6 +305,7 @@ func evaluateCase(context *runContext, declared CaseDecl) (CaseResult, error) {
 		CombinedCapabilities: unionCandidateValues(candidates, func(candidate Candidate) []string { return candidate.Capabilities }),
 		CombinedEffectPre:    unionCandidateValues(candidates, func(candidate Candidate) []string { return candidate.EffectPre }),
 		CombinedEffectPost:   unionCandidateValues(candidates, func(candidate Candidate) []string { return candidate.EffectPost }),
+		IndicatorClass:       declared.IndicatorClass,
 		Proof:                declared.Proof,
 	}
 	permutations, err := allPermutations(declared.CandidateIDs)
@@ -309,16 +411,12 @@ func preflight(meta MetaSource, candidates []Candidate) (string, string, *Unknow
 	}
 	missing := make([]string, 0)
 	for _, candidate := range candidates {
-		if len(candidate.ReadFootprint) == 0 && len(candidate.WriteFootprint) == 0 {
+		if len(candidate.ReadFootprint) == 0 || len(candidate.WriteFootprint) == 0 {
 			missing = append(missing, candidate.ID)
 		}
 	}
 	if len(missing) > 0 {
-		sort.Strings(missing)
-		return StateUnknown, "MISSING_SEMANTIC_FOOTPRINT", &Unknown{
-			Stage: "FOOTPRINT", Step: "compute_semantic_footprint", Reason: "READ_WRITE_FOOTPRINT_NOT_DECLARED",
-			UnknownClass: "MISSING_SEMANTIC_FOOTPRINT", NextOperation: "DECLARE_READ_WRITE_FOOTPRINT", BlockedBy: missing,
-		}
+		return StateUnknown, "MISSING_SEMANTIC_FOOTPRINT", missingFootprintUnknown(stableIDs(missing)...)
 	}
 	return StateClosed, "", nil
 }
@@ -492,6 +590,7 @@ func emitBundle(context *runContext, declared CaseDecl, candidates []Candidate) 
 	var builder strings.Builder
 	builder.WriteString("gooo combined_candidate_bundle v2\n")
 	fmt.Fprintf(&builder, "bundle case=%s state=CLOSED\n", declared.ID)
+	fmt.Fprintf(&builder, "indicator_class %s\n", declared.IndicatorClass)
 	for _, candidate := range candidates {
 		fmt.Fprintf(&builder, "candidate id=%s type=%s\n", candidate.ID, candidate.Type)
 		fmt.Fprintf(&builder, "origin author=%s source=%s\n", candidate.Origin.Author, candidate.Origin.Source)
@@ -539,9 +638,9 @@ func writeReport(outputRoot string, evidence Evidence) error {
 		fmt.Fprintf(&builder, "| `%s` | `%s` | `%s` | %d | %t | `%s` |\n", item.ID, item.Expected, item.State, len(item.Permutations), item.ReplayEqual, item.Decision)
 	}
 	builder.WriteString("\n## Deterministic evolution waves and proof choices\n\n")
-	builder.WriteString("| case | proof choice | driver | outcome | guardrail | waves | critical path |\n|---|---|---|---|---|---:|---:|\n")
+	builder.WriteString("| case | indicator class | proof choice | driver | outcome | guardrail | waves | critical path |\n|---|---|---|---|---|---|---:|---:|\n")
 	for _, item := range evidence.Cases {
-		fmt.Fprintf(&builder, "| `%s` | `%s` | `%s` | `%s` | `%s` | %d | %d |\n", item.ID, item.Proof.Choice, item.Proof.Driver, item.Proof.Outcome, item.Proof.Guardrail, len(item.Waves), item.CriticalPath)
+		fmt.Fprintf(&builder, "| `%s` | `%s` | `%s` | `%s` | `%s` | `%s` | %d | %d |\n", item.ID, item.IndicatorClass, item.Proof.Choice, item.Proof.Driver, item.Proof.Outcome, item.Proof.Guardrail, len(item.Waves), item.CriticalPath)
 	}
 	for _, item := range evidence.Cases {
 		fmt.Fprintf(&builder, "\n### Lanes: %s\n\n", item.ID)
@@ -556,14 +655,42 @@ func writeReport(outputRoot string, evidence Evidence) error {
 			fmt.Fprintf(&builder, "- order `%s`: state `%s`, artifact `%s`, terminal `%s`, trace `%s`, atomic_abort `%t`, promoted_bundle `%t`\n", strings.Join(permutation.Order, " → "), permutation.State, permutation.GeneratedArtifact.Digest, permutation.TerminalReason, strings.Join(permutation.OrderedEffectTrace, " → "), permutation.AtomicAbort, permutation.PromotedBundle)
 		}
 	}
+	builder.WriteString("\n## Historical incident identity\n\n")
+	builder.WriteString("| incident | state | release | PR | merge | release run | receipt asset | receipt digest |\n|---|---|---|---|---|---:|---:|---|\n")
+	for _, incident := range evidence.Incidents {
+		fmt.Fprintf(&builder, "| `%s` | `%s` | `%s` `%s` (id `%s`) | `%s` | `%s` | `%s` | `%s` | `%s` |\n", incident.ID, incident.State, reportString(incident.Release.Repository), reportString(incident.Release.Tag), reportInt64(incident.Release.ReleaseID), reportString(incident.PullRequest.URL), reportString(incident.Merge.CommitSHA), reportInt64(incident.Run.ID), reportInt64(incident.Receipt.AssetID), reportString(incident.Receipt.Digest))
+	}
 	builder.WriteString("\n## Authority and exact integer metrics\n\n")
 	fmt.Fprintf(&builder, "- repository_writes: `%d`; source_mutations: `%d`; commit_authority: `%d`; merge_authority: `%d`; release_mutation: `%d`; operator_authoring: `%d`; ci_runtime_authority: `%d`; local_format_executions: `%d`\n", evidence.Authority.RepositoryWrites, evidence.Authority.SourceMutations, evidence.Authority.CommitAuthority, evidence.Authority.MergeAuthority, evidence.Authority.ReleaseMutation, evidence.Authority.OperatorAuthoring, evidence.Authority.CIRuntimeAuthority, evidence.Authority.LocalFormatExecutions)
 	fmt.Fprintf(&builder, "- operational incidents: `%s`\n", strings.Join(evidence.OperationalIncidents, ", "))
 	fmt.Fprintf(&builder, "- inventory files/dirs: `%d`/`%d`; Go/Gooo files: `%d`/`%d`; physical_lines: `%d`\n", evidence.Metrics.Inventory.Files, evidence.Metrics.Inventory.Directories, evidence.Metrics.Inventory.GoFiles, evidence.Metrics.Inventory.GoooFiles, evidence.Metrics.Inventory.PhysicalLines)
 	fmt.Fprintf(&builder, "- generated bundle files/bytes: `%d`/`%d`; artifact_count: `%d`; wall_ms: `%d`; peak_rss_kib: `%d`\n", evidence.Metrics.Generated.Files, evidence.Metrics.Generated.Bytes, evidence.ArtifactCount, evidence.Metrics.WallMS, evidence.Metrics.PeakRSSKiB)
 	fmt.Fprintf(&builder, "- tests total/selected/executed/reused/failed/unknown: `%d`/`%d`/`%d`/`%d`/`%d`/`%d`; receipt improvement: `%s`\n", evidence.Metrics.Tests.Total, evidence.Metrics.Tests.Selected, evidence.Metrics.Tests.Executed, evidence.Metrics.Tests.Reused, evidence.Metrics.Tests.Failed, evidence.Metrics.Tests.Unknown, evidence.Metrics.ImprovementState)
+	fmt.Fprintf(&builder, "- local evaluator metrics: wall_ms `%d`; peak_rss_kib `%d`; CI metrics: state `%s`, source `%s`, run_id `%s`, commit `%s`, wall/build/test_ms `%s`/`%s`/`%s`\n", evidence.Metrics.Local.WallMS, evidence.Metrics.Local.PeakRSSKiB, evidence.Metrics.CI.State, evidence.Metrics.CI.Source, reportInt64(evidence.Metrics.CI.RunID), reportString(evidence.Metrics.CI.CommitSHA), reportInt(evidence.Metrics.CI.WallMS), reportInt(evidence.Metrics.CI.BuildMS), reportInt(evidence.Metrics.CI.TestMS))
+	fmt.Fprintf(&builder, "- CI metric note: `%s`; no improvement estimate is emitted.\n", evidence.Metrics.CI.Reason)
 	builder.WriteString("- root README: excluded from inventory; all fixture and output writes are caller-owned.\n")
 	return os.WriteFile(filepath.Join(outputRoot, "coordinator-report.md"), []byte(builder.String()), 0o644)
+}
+
+func reportString(value *string) string {
+	if value == nil {
+		return "null"
+	}
+	return *value
+}
+
+func reportInt(value *int) string {
+	if value == nil {
+		return "null"
+	}
+	return strconv.Itoa(*value)
+}
+
+func reportInt64(value *int64) string {
+	if value == nil {
+		return "null"
+	}
+	return strconv.FormatInt(*value, 10)
 }
 
 func measureInventory(root string) (Inventory, error) {

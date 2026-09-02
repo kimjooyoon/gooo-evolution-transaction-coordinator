@@ -125,9 +125,15 @@ func ParseMeta(path string) (MetaSource, error) {
 			}
 			meta.Cases = append(meta.Cases, CaseDecl{
 				Ordinal: ordinal, ID: values["id"], Kind: values["kind"], Rule: values["rule"], Expected: values["expected"],
-				CandidateIDs: splitList(values["candidates"]), Replay: values["replay"] == "true",
+				CandidateIDs: splitList(values["candidates"]), Replay: values["replay"] == "true", IndicatorClass: values["indicator_class"],
 				Proof: ProofSelection{Choice: values["proof_choice"], Driver: values["proof_driver"], Outcome: values["proof_outcome"], Guardrail: values["proof_guardrail"]},
 			})
+		case "incident":
+			incident, parseErr := parseIncident(fields[1:])
+			if parseErr != nil {
+				return MetaSource{}, fmt.Errorf("line %d: %w", lineNumber, parseErr)
+			}
+			meta.Incidents = append(meta.Incidents, incident)
 		case "atomic_abort":
 			values, err := keyValues(fields[1:])
 			if err != nil {
@@ -374,9 +380,12 @@ func validateDeclarations(meta MetaSource, contract Contract) error {
 	}
 	for index := 0; index < FixedCaseCount; index++ {
 		metaCase, contractCase := meta.Cases[index], contract.Cases[index]
-		if metaCase.Ordinal != index+1 || metaCase.ID == "" || metaCase.Rule == "" || len(metaCase.CandidateIDs) < MinimumCandidate || metaCase.ID != contractCase.ID || metaCase.Kind != contractCase.Kind || metaCase.Expected != contractCase.Expected || contractCase.Ordinal != index+1 || !validProof(metaCase.Proof) || metaCase.Proof != contractCase.Proof {
+		if metaCase.Ordinal != index+1 || metaCase.ID == "" || metaCase.Rule == "" || len(metaCase.CandidateIDs) < MinimumCandidate || metaCase.ID != contractCase.ID || metaCase.Kind != contractCase.Kind || metaCase.Expected != contractCase.Expected || contractCase.Ordinal != index+1 || !validIndicatorClass(metaCase.IndicatorClass) || metaCase.IndicatorClass != contractCase.IndicatorClass || !validProof(metaCase.Proof) || metaCase.Proof != contractCase.Proof {
 			return fmt.Errorf("fixed case %d does not match the declared contract", index+1)
 		}
+	}
+	if err := validateIncidents(meta.Incidents); err != nil {
+		return err
 	}
 	if !sameStrings(meta.AtomicAbort.States, []string{StateUnknown, StateRefuted}) || meta.AtomicAbort.PromoteBundle || meta.AtomicAbort.PartialPromotion {
 		return fmt.Errorf("atomic abort declaration must deny UNKNOWN/REFUTED promotion")
@@ -462,6 +471,27 @@ func parseWorkReceipt(fields []string) (WorkReceipt, error) {
 	return WorkReceipt{BeforeRelease: before, AfterRelease: after, SequentialWaves: sequential, ParallelWaves: parallel, CriticalPath: critical, CIWallMS: wall, CIBuildMS: build, CITestMS: test}, nil
 }
 
+func parseIncident(fields []string) (IncidentDecl, error) {
+	values, err := keyValues(fields)
+	if err != nil {
+		return IncidentDecl{}, err
+	}
+	incident := IncidentDecl{
+		ID: values["id"], Kind: values["kind"], State: values["state"],
+		ReleaseRepository: values["release_repository"], ReleaseTag: values["release_tag"], ReleaseID: values["release_id"],
+		ReleaseImmutable: values["release_immutable"], ReleaseTagObjectSHA: values["release_tag_object_sha"], ReleaseCommitSHA: values["release_commit_sha"], ReleaseURL: values["release_url"],
+		PRNumber: values["pr_number"], PRURL: values["pr_url"], PRHeadSHA: values["pr_head_sha"], PRRunID: values["pr_run_id"], PRRunURL: values["pr_run_url"],
+		MergeCommitSHA: values["merge_commit_sha"], MergeURL: values["merge_url"],
+		RunID: values["run_id"], RunWorkflow: values["run_workflow"], RunEvent: values["run_event"], RunConclusion: values["run_conclusion"], RunSHA: values["run_sha"], RunURL: values["run_url"],
+		MainRunID: values["main_run_id"], MainRunURL: values["main_run_url"],
+		ReceiptAssetID: values["receipt_asset_id"], ReceiptName: values["receipt_name"], ReceiptDigest: values["receipt_digest"], ReceiptURL: values["receipt_url"],
+	}
+	if incident.ID == "" || incident.Kind == "" || incident.State == "" {
+		return IncidentDecl{}, fmt.Errorf("incident requires id, kind, and state")
+	}
+	return incident, nil
+}
+
 func validateCandidate(candidate Candidate, meta MetaSource) error {
 	if candidate.Schema != CandidateSchema || candidate.Version != "v1" || candidate.ID == "" || candidate.Type == "" {
 		return fmt.Errorf("candidate %q has an invalid typed identity", candidate.ID)
@@ -490,6 +520,51 @@ func validRelease(release ReleaseIdentity) bool {
 
 func validProof(proof ProofSelection) bool {
 	return (proof.Choice == "FOUNDATION" || proof.Choice == "COHERENCE" || proof.Choice == "REGRESSION") && proof.Driver != "" && proof.Outcome != "" && proof.Guardrail != ""
+}
+
+func validIndicatorClass(indicatorClass string) bool {
+	return indicatorClass == "DRIVER" || indicatorClass == "OUTCOME" || indicatorClass == "GUARDRAIL"
+}
+
+func validateIncidents(incidents []IncidentDecl) error {
+	if len(incidents) < 2 {
+		return fmt.Errorf("historical incident identity requires at least two incidents")
+	}
+	seen := map[string]bool{}
+	for _, incident := range incidents {
+		if seen[incident.ID] {
+			return fmt.Errorf("duplicate incident identity %q", incident.ID)
+		}
+		seen[incident.ID] = true
+		if incident.State != "CONFIRMED" && incident.State != "UNKNOWN" {
+			return fmt.Errorf("incident %q has invalid state %q", incident.ID, incident.State)
+		}
+		missing := incidentMissingFields(incident)
+		if incident.State == "CONFIRMED" && len(missing) > 0 {
+			return fmt.Errorf("confirmed incident %q is missing %s", incident.ID, strings.Join(missing, ","))
+		}
+	}
+	return nil
+}
+
+func incidentMissingFields(incident IncidentDecl) []string {
+	fields := map[string]string{
+		"release_repository": incident.ReleaseRepository, "release_tag": incident.ReleaseTag, "release_id": incident.ReleaseID,
+		"release_immutable": incident.ReleaseImmutable, "release_tag_object_sha": incident.ReleaseTagObjectSHA, "release_commit_sha": incident.ReleaseCommitSHA, "release_url": incident.ReleaseURL,
+		"pr_number": incident.PRNumber, "pr_url": incident.PRURL, "pr_head_sha": incident.PRHeadSHA, "pr_run_id": incident.PRRunID, "pr_run_url": incident.PRRunURL,
+		"merge_commit_sha": incident.MergeCommitSHA, "merge_url": incident.MergeURL,
+		"run_id": incident.RunID, "run_workflow": incident.RunWorkflow, "run_event": incident.RunEvent, "run_conclusion": incident.RunConclusion, "run_sha": incident.RunSHA, "run_url": incident.RunURL,
+		"main_run_id": incident.MainRunID, "main_run_url": incident.MainRunURL,
+		"receipt_asset_id": incident.ReceiptAssetID, "receipt_name": incident.ReceiptName, "receipt_digest": incident.ReceiptDigest, "receipt_url": incident.ReceiptURL,
+	}
+	missing := make([]string, 0)
+	for name, value := range fields {
+		if value == "" || value == "null" {
+			missing = append(missing, name)
+		}
+	}
+	sort.Strings(missing)
+	return missing
 }
 
 func sameSet(left, right []string) bool {

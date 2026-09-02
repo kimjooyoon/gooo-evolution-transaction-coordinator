@@ -34,6 +34,10 @@ atomic composition.
 9. Resolve the case using the declared precedence
    `REFUTED > UNKNOWN > CLOSED`.
 
+Every denominator case has an independent `indicator_class` field with one of
+`DRIVER`, `OUTCOME`, or `GUARDRAIL`; it is not derived from or substituted for
+`proof_choice`. The case IR and closed bundle preserve both fields.
+
 ## Promotion
 
 Only a CLOSED case may emit a combined candidate bundle. An UNKNOWN or
@@ -67,4 +71,12 @@ release-boundary job calls the repository immutable-releases API and fails
 closed on a missing endpoint, a false `enabled` value, or an unavailable
 administration read. A future release is valid only when its Release API object
 reports `immutable=true` and each uploaded asset has a sha256 digest. Existing
-releases are never rewritten to repair a historical immutability value.
+releases are never rewritten to repair a historical immutability value. The
+append-only evidence IR records the exact v0.2.0 AppliedCandidates incident and
+v0.2.1 fix identities. Missing historical identity values are represented as
+JSON `null` with incident state `UNKNOWN`.
+
+Local evaluator timings, actual CI-run identity/metrics, and the fixed
+`local_format_executions=3` incident are separate evidence dimensions. Receipt
+data is not used to estimate improvement; improvement remains `UNKNOWN` unless
+an exact, completed before/after measurement is available.

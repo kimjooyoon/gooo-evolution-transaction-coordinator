@@ -142,6 +142,21 @@ func lanePreflight(meta MetaSource, candidate Candidate) (string, *Unknown) {
 			return StateRefuted, nil
 		}
 	}
+	if releasePresent(candidate.ImmutableInputRelease) && !validRelease(candidate.ImmutableInputRelease) {
+		return StateRefuted, nil
+	}
+	if releasePresent(candidate.ExpectedOutputRelease) && !validRelease(candidate.ExpectedOutputRelease) {
+		return StateRefuted, nil
+	}
+	if candidate.ImmutableInputRelease != meta.ImmutableInputRelease && validRelease(candidate.ImmutableInputRelease) {
+		return StateRefuted, nil
+	}
+	if candidate.ExpectedOutputRelease != meta.ExpectedOutputRelease && validRelease(candidate.ExpectedOutputRelease) {
+		return StateRefuted, nil
+	}
+	if len(candidate.ReadFootprint) == 0 || len(candidate.WriteFootprint) == 0 {
+		return StateUnknown, missingFootprintUnknown(candidate.ID)
+	}
 	missing := make([]string, 0)
 	if candidate.SemanticAuthorityID == "" {
 		missing = append(missing, "semantic_authority_id")
@@ -161,22 +176,31 @@ func lanePreflight(meta MetaSource, candidate Candidate) (string, *Unknown) {
 	if candidate.AdoptionTarget == "" {
 		missing = append(missing, "adoption_target")
 	}
-	if releasePresent(candidate.ImmutableInputRelease) && !validRelease(candidate.ImmutableInputRelease) {
-		return StateRefuted, nil
-	}
-	if releasePresent(candidate.ExpectedOutputRelease) && !validRelease(candidate.ExpectedOutputRelease) {
-		return StateRefuted, nil
-	}
-	if candidate.ImmutableInputRelease != meta.ImmutableInputRelease && validRelease(candidate.ImmutableInputRelease) {
-		return StateRefuted, nil
-	}
-	if candidate.ExpectedOutputRelease != meta.ExpectedOutputRelease && validRelease(candidate.ExpectedOutputRelease) {
-		return StateRefuted, nil
-	}
 	if len(missing) > 0 {
 		return StateUnknown, &Unknown{Stage: "IDENTITY", Step: "resolve_candidate_evidence", Reason: "IDENTITY_OR_EVIDENCE_MISSING", UnknownClass: "MISSING_IDENTITY_OR_EVIDENCE", NextOperation: "DECLARE_MISSING_IDENTITY_OR_EVIDENCE", BlockedBy: []string{candidate.ID}}
 	}
 	return StateClosed, nil
+}
+
+func missingFootprintUnknown(candidateIDs ...string) *Unknown {
+	return &Unknown{
+		Stage: "FOOTPRINT", Step: "compute_semantic_footprint", Reason: "READ_WRITE_FOOTPRINT_NOT_DECLARED",
+		UnknownClass: "MISSING_SEMANTIC_FOOTPRINT", NextOperation: "DECLARE_READ_WRITE_FOOTPRINT", BlockedBy: stableIDs(candidateIDs),
+	}
+}
+
+func stableIDs(ids []string) []string {
+	seen := make(map[string]bool, len(ids))
+	result := make([]string, 0, len(ids))
+	for _, id := range ids {
+		if id == "" || seen[id] {
+			continue
+		}
+		seen[id] = true
+		result = append(result, id)
+	}
+	sort.Strings(result)
+	return result
 }
 
 func releasePresent(release ReleaseIdentity) bool {
@@ -230,23 +254,6 @@ func laneSummaryState(lanes []LaneResult) (string, string, *Unknown) {
 		}
 	}
 	return StateClosed, "", nil
-}
-
-func observedImprovement(candidates []Candidate) *ImprovementEvidence {
-	if len(candidates) == 0 || candidates[0].WorkReceipt == nil {
-		return nil
-	}
-	reference := *candidates[0].WorkReceipt
-	for _, candidate := range candidates[1:] {
-		if candidate.WorkReceipt == nil || candidate.WorkReceipt.BeforeRelease != reference.BeforeRelease || candidate.WorkReceipt.AfterRelease != reference.AfterRelease {
-			return nil
-		}
-	}
-	return &ImprovementEvidence{
-		BeforeRelease: reference.BeforeRelease, AfterRelease: reference.AfterRelease,
-		SequentialWaveCount: reference.SequentialWaves, ParallelWaveCount: reference.ParallelWaves,
-		CriticalPath: reference.CriticalPath, CIWallMS: reference.CIWallMS, CIBuildMS: reference.CIBuildMS, CITestMS: reference.CITestMS,
-	}
 }
 
 func plannedOrders(waves []EvolutionWave) [][]string {
