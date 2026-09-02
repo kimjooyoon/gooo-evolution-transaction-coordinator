@@ -31,6 +31,9 @@ jq -e '
   .fixed_case_count == 8 and
   .precedence == ["REFUTED", "UNKNOWN", "CLOSED"] and
   .summary == {generated:8,closed:4,unknown:1,refuted:3} and
+  ([.cases[].state] == ["CLOSED","CLOSED","REFUTED","REFUTED","REFUTED","UNKNOWN","CLOSED","CLOSED"]) and
+  ([.cases[] | select((.indicator_class == "DRIVER" or .indicator_class == "OUTCOME" or .indicator_class == "GUARDRAIL") and (.proof.choice != .indicator_class))] | length) == 8 and
+  ([.cases[].indicator_class] | sort | unique) == ["DRIVER", "GUARDRAIL", "OUTCOME"] and
   .metrics.generated.files == 4 and
   .metrics.generated.bytes > 0 and
   .metrics.tests == {total:8,selected:8,executed:8,reused:1,failed:3,unknown:1} and
@@ -47,7 +50,8 @@ jq -e '
   ([.cases[] | select(.state != "CLOSED" and (.atomic_abort != true or .promoted_bundle != false))] | length) == 0 and
   ([.cases[] | select(.state == "CLOSED" and (.bundle == null or .promoted_bundle != true))] | length) == 0 and
   ([.cases[] | select(.state != "CLOSED" and (.bundle != null))] | length) == 0 and
-  ([.cases[] | select(.id == "case-06-missing-footprint") | .unknown | (.stage != "" and .step != "" and .reason != "" and .unknown_class != "" and .next_operation != "" and (.blocked_by | length) > 0)] | all) and
+  ([.cases[] | select(.id == "case-06-missing-footprint") | .unknown | (.stage == "FOOTPRINT" and .step == "compute_semantic_footprint" and .reason == "READ_WRITE_FOOTPRINT_NOT_DECLARED" and .unknown_class == "MISSING_SEMANTIC_FOOTPRINT" and .next_operation == "DECLARE_READ_WRITE_FOOTPRINT" and .blocked_by == ["missing-footprint"])] | all) and
+  ([.cases[] | select(.id == "case-06-missing-footprint") | .lanes[] | select(.candidate_id == "missing-footprint") | .unknown | keys | sort] | all(. == ["blocked_by","next_operation","reason","stage","step","unknown_class"])) and
   ([.cases[] | select(.id == "case-07-replay") | .replay_equal] | all) and
   .metrics.inventory.root_readme_excluded == true and
   .metrics.inventory.files > 0 and
@@ -56,7 +60,13 @@ jq -e '
   .metrics.inventory.gooo_files > 0 and
   .metrics.inventory.physical_lines > 0 and
   .metrics.wall_ms > 0 and
-  .metrics.peak_rss_kib > 0
+  .metrics.peak_rss_kib > 0 and
+  .metrics.local.wall_ms > 0 and .metrics.local.peak_rss_kib > 0 and
+  .metrics.improvement_state == "UNKNOWN" and .metrics.improvement == null and
+  .metrics.ci.state == "UNKNOWN" and .metrics.ci.wall_ms == null and .metrics.ci.build_ms == null and .metrics.ci.test_ms == null and
+  ([.incidents[] | select(.state == "CONFIRMED" and .release.release_id != null and .release.immutable == true and .pull_request.number != null and .merge.commit_sha != null and .run.id != null and .receipt.asset_id != null and (.receipt.digest | startswith("sha256:")))] | length) == 2 and
+  ([.incidents[] | select(.id == "v0.2.0-applied-candidates-empty-vector") | select(.release.release_id == 381177402 and .release.tag == "v0.2.0" and .pull_request.number == 3 and .run.id == 33621988146 and .merge.commit_sha == "3e33b1ce3aab953ed6ffb2533b39c2df6f2d8e63" and .receipt.asset_id == 541043015 and .receipt.digest == "sha256:90697ebb6c18441fd130414e3037fd8cda93e4e7e8df5e33d560fca89938d3a8")] | length) == 1 and
+  ([.incidents[] | select(.id == "v0.2.1-applied-candidates-receipt-fix") | select(.release.release_id == 381179864 and .release.tag == "v0.2.1" and .pull_request.number == 4 and .run.id == 33622347822 and .merge.commit_sha == "4234b39ea044609cd12b55d50c403b7f9dcd99c0" and .receipt.asset_id == 541048352 and .receipt.digest == "sha256:709795a9c93745f575386e42f45e430483c3198a314540d75f96f26a6b67d0eb")] | length) == 1
 ' "$work/first-output/evidence.json"
 
 test "$(find "$work/first-output/bundles" -type f | wc -l | tr -d ' ')" = 4
