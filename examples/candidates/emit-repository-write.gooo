@@ -7,7 +7,7 @@ repository_writer beta-forbidden
 read_set compiler/main.go
 write_set compiler/generated/forbidden.go
 immutable_input_release repository=github.com/kimjooyoon/gooo-evolution-transaction-coordinator tag=v0.1.1 digest=sha256:9a83bccb0f6bd947d7d621a3a3f3f4059a505ebd7958d077ddd9c692e0ecf02b
-expected_output_release repository=github.com/kimjooyoon/gooo-evolution-transaction-coordinator tag=v0.2.0 digest=sha256:pending-v0.2.0
+expected_output_release repository=github.com/kimjooyoon/gooo-evolution-transaction-coordinator tag=v0.2.1 digest=sha256:pending-v0.2.1
 adoption_target none
 capability typed_rewrite REPOSITORY_WRITE
 effect pre=READ_INPUT post=REPOSITORY_WRITE

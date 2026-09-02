@@ -361,7 +361,7 @@ func executePermutation(context *runContext, declared CaseDecl, candidates []Can
 			}
 			return PermutationResult{Order: append([]string{}, order...), State: StateRefuted, GeneratedArtifact: artifact, TerminalReason: state.Terminal, OrderedEffectTrace: append([]string{}, state.EffectTrace...), AppliedCandidates: append([]string{}, state.Applied...), AtomicAbort: true}, nil
 		}
-		if err := applyOperation(state, candidate); err != nil {
+		if err := applyOperation(&state, candidate); err != nil {
 			return PermutationResult{}, fmt.Errorf("case %q candidate %q: %w", declared.ID, candidate.ID, err)
 		}
 		state.EffectTrace = append(state.EffectTrace, "effect:post:"+strings.Join(candidate.EffectPost, "+"))
@@ -396,7 +396,7 @@ func replayCase(context *runContext, declared CaseDecl, candidates []Candidate, 
 	return true, nil
 }
 
-func applyOperation(state fixtureState, candidate Candidate) error {
+func applyOperation(state *fixtureState, candidate Candidate) error {
 	path := candidate.Operation.Artifact
 	if !strings.HasPrefix(filepath.ToSlash(path), "compiler/") {
 		return fmt.Errorf("operation artifact %q escapes compiler fixture", path)
