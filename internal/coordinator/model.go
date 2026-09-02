@@ -356,9 +356,9 @@ type CIMetrics struct {
 }
 
 type IncidentEvidence struct {
-	ID          string                       `json:"id"`
-	Kind        string                       `json:"kind"`
-	State       string                       `json:"state"`
+	ID          string                      `json:"id"`
+	Kind        string                      `json:"kind"`
+	State       string                      `json:"state"`
 	Release     IncidentReleaseIdentity     `json:"release"`
 	PullRequest IncidentPullRequestIdentity `json:"pull_request"`
 	Merge       IncidentMergeIdentity       `json:"merge"`
@@ -431,26 +431,26 @@ type Authority struct {
 }
 
 type Evidence struct {
-	Schema               string          `json:"schema"`
-	Version              string          `json:"version"`
-	SourceDigest         string          `json:"source_digest"`
-	ContractDigest       string          `json:"contract_digest"`
-	EvaluatorDigest      string          `json:"evaluator_digest"`
-	Precedence           []string        `json:"precedence"`
-	UnknownFields        []string        `json:"unknown_fields"`
-	DenominatorID        string          `json:"denominator_id"`
-	FixedCaseCount       int             `json:"fixed_case_count"`
-	Summary              Summary         `json:"summary"`
-	Candidates           []Candidate     `json:"candidates"`
-	Cases                []CaseResult    `json:"cases"`
+	Schema               string             `json:"schema"`
+	Version              string             `json:"version"`
+	SourceDigest         string             `json:"source_digest"`
+	ContractDigest       string             `json:"contract_digest"`
+	EvaluatorDigest      string             `json:"evaluator_digest"`
+	Precedence           []string           `json:"precedence"`
+	UnknownFields        []string           `json:"unknown_fields"`
+	DenominatorID        string             `json:"denominator_id"`
+	FixedCaseCount       int                `json:"fixed_case_count"`
+	Summary              Summary            `json:"summary"`
+	Candidates           []Candidate        `json:"candidates"`
+	Cases                []CaseResult       `json:"cases"`
 	Incidents            []IncidentEvidence `json:"incidents"`
-	Metrics              Metrics         `json:"metrics"`
-	Authority            Authority       `json:"authority"`
-	ArtifactNames        []string        `json:"artifact_names"`
-	ArtifactCount        int             `json:"artifact_count"`
-	AtomicAbortRule      AtomicAbortDecl `json:"atomic_abort_rule"`
-	BundleRule           BundleDecl      `json:"bundle_rule"`
-	OperationalIncidents []string        `json:"operational_incidents"`
+	Metrics              Metrics            `json:"metrics"`
+	Authority            Authority          `json:"authority"`
+	ArtifactNames        []string           `json:"artifact_names"`
+	ArtifactCount        int                `json:"artifact_count"`
+	AtomicAbortRule      AtomicAbortDecl    `json:"atomic_abort_rule"`
+	BundleRule           BundleDecl         `json:"bundle_rule"`
+	OperationalIncidents []string           `json:"operational_incidents"`
 }
 
 type fixtureState struct {
