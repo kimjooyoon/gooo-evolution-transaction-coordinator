@@ -313,35 +313,37 @@ type ImprovementEvidence struct {
 }
 
 type Authority struct {
-	RepositoryWrites    int `json:"repository_writes"`
-	SourceMutations     int `json:"source_mutations"`
-	CommitAuthority     int `json:"commit_authority"`
-	MergeAuthority      int `json:"merge_authority"`
-	ReleaseMutation     int `json:"release_mutation"`
-	LocalTestExecutions int `json:"local_test_executions"`
-	OperatorAuthoring   int `json:"operator_authoring"`
-	CIRuntimeAuthority  int `json:"ci_runtime_authority"`
+	RepositoryWrites      int `json:"repository_writes"`
+	SourceMutations       int `json:"source_mutations"`
+	CommitAuthority       int `json:"commit_authority"`
+	MergeAuthority        int `json:"merge_authority"`
+	ReleaseMutation       int `json:"release_mutation"`
+	LocalTestExecutions   int `json:"local_test_executions"`
+	OperatorAuthoring     int `json:"operator_authoring"`
+	CIRuntimeAuthority    int `json:"ci_runtime_authority"`
+	LocalFormatExecutions int `json:"local_format_executions"`
 }
 
 type Evidence struct {
-	Schema          string          `json:"schema"`
-	Version         string          `json:"version"`
-	SourceDigest    string          `json:"source_digest"`
-	ContractDigest  string          `json:"contract_digest"`
-	EvaluatorDigest string          `json:"evaluator_digest"`
-	Precedence      []string        `json:"precedence"`
-	UnknownFields   []string        `json:"unknown_fields"`
-	DenominatorID   string          `json:"denominator_id"`
-	FixedCaseCount  int             `json:"fixed_case_count"`
-	Summary         Summary         `json:"summary"`
-	Candidates      []Candidate     `json:"candidates"`
-	Cases           []CaseResult    `json:"cases"`
-	Metrics         Metrics         `json:"metrics"`
-	Authority       Authority       `json:"authority"`
-	ArtifactNames   []string        `json:"artifact_names"`
-	ArtifactCount   int             `json:"artifact_count"`
-	AtomicAbortRule AtomicAbortDecl `json:"atomic_abort_rule"`
-	BundleRule      BundleDecl      `json:"bundle_rule"`
+	Schema               string          `json:"schema"`
+	Version              string          `json:"version"`
+	SourceDigest         string          `json:"source_digest"`
+	ContractDigest       string          `json:"contract_digest"`
+	EvaluatorDigest      string          `json:"evaluator_digest"`
+	Precedence           []string        `json:"precedence"`
+	UnknownFields        []string        `json:"unknown_fields"`
+	DenominatorID        string          `json:"denominator_id"`
+	FixedCaseCount       int             `json:"fixed_case_count"`
+	Summary              Summary         `json:"summary"`
+	Candidates           []Candidate     `json:"candidates"`
+	Cases                []CaseResult    `json:"cases"`
+	Metrics              Metrics         `json:"metrics"`
+	Authority            Authority       `json:"authority"`
+	ArtifactNames        []string        `json:"artifact_names"`
+	ArtifactCount        int             `json:"artifact_count"`
+	AtomicAbortRule      AtomicAbortDecl `json:"atomic_abort_rule"`
+	BundleRule           BundleDecl      `json:"bundle_rule"`
+	OperationalIncidents []string        `json:"operational_incidents"`
 }
 
 type fixtureState struct {

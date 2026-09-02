@@ -172,8 +172,9 @@ func Run(input RunInput) (Evidence, error) {
 		Precedence: append([]string{}, meta.Precedence...), UnknownFields: append([]string{}, meta.UnknownFields...),
 		DenominatorID: meta.Denominator.ID, FixedCaseCount: FixedCaseCount, Summary: summary,
 		Candidates: candidates, Cases: results, Metrics: metrics,
-		Authority:     Authority{RepositoryWrites: 0, SourceMutations: 0, CommitAuthority: 0, MergeAuthority: 0, ReleaseMutation: 0, LocalTestExecutions: 0, OperatorAuthoring: 0, CIRuntimeAuthority: 0},
+		Authority: Authority{RepositoryWrites: 0, SourceMutations: 0, CommitAuthority: 0, MergeAuthority: 0, ReleaseMutation: 0, LocalTestExecutions: 0, OperatorAuthoring: 0, CIRuntimeAuthority: 0, LocalFormatExecutions: 2},
 		ArtifactNames: artifactNames, ArtifactCount: len(artifactNames), AtomicAbortRule: meta.AtomicAbort, BundleRule: meta.Bundle,
+		OperationalIncidents: []string{"OPERATIONAL_REFUTED", "LOCAL_FORMAT_EXECUTED"},
 	}
 	if err := writeEvidence(outputRoot, evidence); err != nil {
 		return Evidence{}, err
@@ -556,7 +557,8 @@ func writeReport(outputRoot string, evidence Evidence) error {
 		}
 	}
 	builder.WriteString("\n## Authority and exact integer metrics\n\n")
-	fmt.Fprintf(&builder, "- repository_writes: `%d`; source_mutations: `%d`; commit_authority: `%d`; merge_authority: `%d`; release_mutation: `%d`; operator_authoring: `%d`; ci_runtime_authority: `%d`\n", evidence.Authority.RepositoryWrites, evidence.Authority.SourceMutations, evidence.Authority.CommitAuthority, evidence.Authority.MergeAuthority, evidence.Authority.ReleaseMutation, evidence.Authority.OperatorAuthoring, evidence.Authority.CIRuntimeAuthority)
+	fmt.Fprintf(&builder, "- repository_writes: `%d`; source_mutations: `%d`; commit_authority: `%d`; merge_authority: `%d`; release_mutation: `%d`; operator_authoring: `%d`; ci_runtime_authority: `%d`; local_format_executions: `%d`\n", evidence.Authority.RepositoryWrites, evidence.Authority.SourceMutations, evidence.Authority.CommitAuthority, evidence.Authority.MergeAuthority, evidence.Authority.ReleaseMutation, evidence.Authority.OperatorAuthoring, evidence.Authority.CIRuntimeAuthority, evidence.Authority.LocalFormatExecutions)
+	fmt.Fprintf(&builder, "- operational incidents: `%s`\n", strings.Join(evidence.OperationalIncidents, ", "))
 	fmt.Fprintf(&builder, "- inventory files/dirs: `%d`/`%d`; Go/Gooo files: `%d`/`%d`; physical_lines: `%d`\n", evidence.Metrics.Inventory.Files, evidence.Metrics.Inventory.Directories, evidence.Metrics.Inventory.GoFiles, evidence.Metrics.Inventory.GoooFiles, evidence.Metrics.Inventory.PhysicalLines)
 	fmt.Fprintf(&builder, "- generated bundle files/bytes: `%d`/`%d`; artifact_count: `%d`; wall_ms: `%d`; peak_rss_kib: `%d`\n", evidence.Metrics.Generated.Files, evidence.Metrics.Generated.Bytes, evidence.ArtifactCount, evidence.Metrics.WallMS, evidence.Metrics.PeakRSSKiB)
 	fmt.Fprintf(&builder, "- tests total/selected/executed/reused/failed/unknown: `%d`/`%d`/`%d`/`%d`/`%d`/`%d`; receipt improvement: `%s`\n", evidence.Metrics.Tests.Total, evidence.Metrics.Tests.Selected, evidence.Metrics.Tests.Executed, evidence.Metrics.Tests.Reused, evidence.Metrics.Tests.Failed, evidence.Metrics.Tests.Unknown, evidence.Metrics.ImprovementState)

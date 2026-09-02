@@ -23,6 +23,8 @@ jq -e '
 ' contracts/denominator-v2.json >/dev/null
 jq -e '
   .summary == {generated:8,closed:4,unknown:1,refuted:3} and
+  .authority.local_test_executions == 0 and .authority.local_format_executions == 2 and
+  .operational_incidents == ["OPERATIONAL_REFUTED", "LOCAL_FORMAT_EXECUTED"] and
   ([.cases[] | select(.state == "UNKNOWN") | .unknown | keys | sort] | all(. == ["blocked_by","next_operation","reason","stage","step","unknown_class"])) and
   ([.cases[] | select(.state == "REFUTED") | select(.atomic_abort == true and .promoted_bundle == false)] | length) == 3 and
   ([.cases[] | select(.state == "CLOSED") | select(.bundle != null and .promoted_bundle == true and .atomic_abort == false)] | length) == 4 and
