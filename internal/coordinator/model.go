@@ -83,50 +83,50 @@ type BundleDecl struct {
 }
 
 type Contract struct {
-	Schema    string         `json:"schema"`
-	ID        string         `json:"id"`
-	Version   string         `json:"version"`
-	CellCount int            `json:"cell_count"`
-	Fixed     bool           `json:"fixed"`
-	AppendOnlyFrom string     `json:"append_only_from"`
-	Cases     []ContractCase `json:"cases"`
+	Schema         string         `json:"schema"`
+	ID             string         `json:"id"`
+	Version        string         `json:"version"`
+	CellCount      int            `json:"cell_count"`
+	Fixed          bool           `json:"fixed"`
+	AppendOnlyFrom string         `json:"append_only_from"`
+	Cases          []ContractCase `json:"cases"`
 }
 
 type ContractCase struct {
-	Ordinal  int    `json:"ordinal"`
-	ID       string `json:"id"`
-	Kind     string `json:"kind"`
-	Expected string `json:"expected"`
+	Ordinal  int            `json:"ordinal"`
+	ID       string         `json:"id"`
+	Kind     string         `json:"kind"`
+	Expected string         `json:"expected"`
 	Proof    ProofSelection `json:"proof"`
 }
 
 type Candidate struct {
-	Schema         string            `json:"schema"`
-	Version        string            `json:"version"`
-	ID             string            `json:"id"`
-	Type           string            `json:"type"`
-	Origin         Origin            `json:"origin"`
-	Capabilities   []string          `json:"capabilities"`
-	EffectPre      []string          `json:"effect_pre"`
-	EffectPost     []string          `json:"effect_post"`
-	ReadFootprint  []string          `json:"read_footprint"`
-	WriteFootprint []string          `json:"write_footprint"`
-	Preconditions  map[string]string `json:"preconditions"`
-	Postconditions map[string]string `json:"postconditions"`
-	Operation      Operation         `json:"operation"`
-	SemanticAuthorityID string `json:"semantic_authority_id"`
-	RepositoryIdentity  string `json:"repository_identity"`
-	RepositoryWriter    string `json:"repository_writer"`
-	ReadSet             []string `json:"read_set"`
-	WriteSet            []string `json:"write_set"`
-	ImmutableInputRelease ReleaseIdentity `json:"immutable_input_release"`
-	ExpectedOutputRelease ReleaseIdentity `json:"expected_output_release"`
-	AdoptionTarget      string `json:"adoption_target"`
-	DependsOn           []string `json:"depends_on"`
-	WorkReceipt         *WorkReceipt `json:"work_receipt,omitempty"`
-	Proof               ProofSelection `json:"proof"`
-	SourcePath     string            `json:"source_path"`
-	SourceDigest   string            `json:"source_digest"`
+	Schema                string            `json:"schema"`
+	Version               string            `json:"version"`
+	ID                    string            `json:"id"`
+	Type                  string            `json:"type"`
+	Origin                Origin            `json:"origin"`
+	Capabilities          []string          `json:"capabilities"`
+	EffectPre             []string          `json:"effect_pre"`
+	EffectPost            []string          `json:"effect_post"`
+	ReadFootprint         []string          `json:"read_footprint"`
+	WriteFootprint        []string          `json:"write_footprint"`
+	Preconditions         map[string]string `json:"preconditions"`
+	Postconditions        map[string]string `json:"postconditions"`
+	Operation             Operation         `json:"operation"`
+	SemanticAuthorityID   string            `json:"semantic_authority_id"`
+	RepositoryIdentity    string            `json:"repository_identity"`
+	RepositoryWriter      string            `json:"repository_writer"`
+	ReadSet               []string          `json:"read_set"`
+	WriteSet              []string          `json:"write_set"`
+	ImmutableInputRelease ReleaseIdentity   `json:"immutable_input_release"`
+	ExpectedOutputRelease ReleaseIdentity   `json:"expected_output_release"`
+	AdoptionTarget        string            `json:"adoption_target"`
+	DependsOn             []string          `json:"depends_on"`
+	WorkReceipt           *WorkReceipt      `json:"work_receipt,omitempty"`
+	Proof                 ProofSelection    `json:"proof"`
+	SourcePath            string            `json:"source_path"`
+	SourceDigest          string            `json:"source_digest"`
 }
 
 type ReleaseIdentity struct {
@@ -136,14 +136,14 @@ type ReleaseIdentity struct {
 }
 
 type WorkReceipt struct {
-	BeforeRelease      ReleaseIdentity `json:"before_release"`
-	AfterRelease       ReleaseIdentity `json:"after_release"`
-	SequentialWaves    int `json:"sequential_wave_count"`
-	ParallelWaves      int `json:"parallel_wave_count"`
-	CriticalPath       int `json:"critical_path"`
-	CIWallMS           int `json:"ci_wall_ms"`
-	CIBuildMS          int `json:"ci_build_ms"`
-	CITestMS           int `json:"ci_test_ms"`
+	BeforeRelease   ReleaseIdentity `json:"before_release"`
+	AfterRelease    ReleaseIdentity `json:"after_release"`
+	SequentialWaves int             `json:"sequential_wave_count"`
+	ParallelWaves   int             `json:"parallel_wave_count"`
+	CriticalPath    int             `json:"critical_path"`
+	CIWallMS        int             `json:"ci_wall_ms"`
+	CIBuildMS       int             `json:"ci_build_ms"`
+	CITestMS        int             `json:"ci_test_ms"`
 }
 
 type ProofSelection struct {
@@ -167,39 +167,39 @@ type Operation struct {
 }
 
 type FootprintSummary struct {
-	CandidateID    string            `json:"candidate_id"`
-	Read           []string          `json:"read"`
-	Write          []string          `json:"write"`
-	Origin         Origin            `json:"origin"`
-	Capabilities   []string          `json:"capabilities"`
-	EffectPre      []string          `json:"effect_pre"`
-	EffectPost     []string          `json:"effect_post"`
-	Preconditions  map[string]string `json:"preconditions"`
-	Postconditions map[string]string `json:"postconditions"`
-	SemanticAuthorityID string `json:"semantic_authority_id"`
-	RepositoryIdentity string `json:"repository_identity"`
-	RepositoryWriter string `json:"repository_writer"`
-	ReadSet []string `json:"read_set"`
-	WriteSet []string `json:"write_set"`
-	ImmutableInputRelease ReleaseIdentity `json:"immutable_input_release"`
-	ExpectedOutputRelease ReleaseIdentity `json:"expected_output_release"`
-	AdoptionTarget string `json:"adoption_target"`
-	DependsOn []string `json:"depends_on"`
-	Proof ProofSelection `json:"proof"`
+	CandidateID           string            `json:"candidate_id"`
+	Read                  []string          `json:"read"`
+	Write                 []string          `json:"write"`
+	Origin                Origin            `json:"origin"`
+	Capabilities          []string          `json:"capabilities"`
+	EffectPre             []string          `json:"effect_pre"`
+	EffectPost            []string          `json:"effect_post"`
+	Preconditions         map[string]string `json:"preconditions"`
+	Postconditions        map[string]string `json:"postconditions"`
+	SemanticAuthorityID   string            `json:"semantic_authority_id"`
+	RepositoryIdentity    string            `json:"repository_identity"`
+	RepositoryWriter      string            `json:"repository_writer"`
+	ReadSet               []string          `json:"read_set"`
+	WriteSet              []string          `json:"write_set"`
+	ImmutableInputRelease ReleaseIdentity   `json:"immutable_input_release"`
+	ExpectedOutputRelease ReleaseIdentity   `json:"expected_output_release"`
+	AdoptionTarget        string            `json:"adoption_target"`
+	DependsOn             []string          `json:"depends_on"`
+	Proof                 ProofSelection    `json:"proof"`
 }
 
 type EvolutionWave struct {
-	Ordinal       int      `json:"ordinal"`
-	CandidateIDs  []string `json:"candidate_ids"`
-	Parallel      bool     `json:"parallel"`
-	Final         bool     `json:"final"`
-	SingleWriter  string   `json:"single_writer,omitempty"`
+	Ordinal      int      `json:"ordinal"`
+	CandidateIDs []string `json:"candidate_ids"`
+	Parallel     bool     `json:"parallel"`
+	Final        bool     `json:"final"`
+	SingleWriter string   `json:"single_writer,omitempty"`
 }
 
 type LaneResult struct {
-	CandidateID string `json:"candidate_id"`
-	State       string `json:"state"`
-	Decision    string `json:"decision"`
+	CandidateID string   `json:"candidate_id"`
+	State       string   `json:"state"`
+	Decision    string   `json:"decision"`
 	Unknown     *Unknown `json:"unknown,omitempty"`
 }
 
@@ -286,30 +286,30 @@ type TestMetrics struct {
 }
 
 type Metrics struct {
-	WallMS     int              `json:"wall_ms"`
-	PeakRSSKiB int              `json:"peak_rss_kib"`
-	Inventory  Inventory        `json:"inventory"`
-	Generated  GeneratedMetrics `json:"generated"`
-	Tests      TestMetrics      `json:"tests"`
-	SequentialWaveCount int `json:"sequential_wave_count"`
-	ParallelWaveCount int `json:"parallel_wave_count"`
-	CriticalPath int `json:"critical_path"`
-	CIWallMS int `json:"ci_wall_ms"`
-	CIBuildMS int `json:"ci_build_ms"`
-	CITestMS int `json:"ci_test_ms"`
-	ImprovementState string `json:"improvement_state"`
-	Improvement *ImprovementEvidence `json:"improvement"`
+	WallMS              int                  `json:"wall_ms"`
+	PeakRSSKiB          int                  `json:"peak_rss_kib"`
+	Inventory           Inventory            `json:"inventory"`
+	Generated           GeneratedMetrics     `json:"generated"`
+	Tests               TestMetrics          `json:"tests"`
+	SequentialWaveCount int                  `json:"sequential_wave_count"`
+	ParallelWaveCount   int                  `json:"parallel_wave_count"`
+	CriticalPath        int                  `json:"critical_path"`
+	CIWallMS            int                  `json:"ci_wall_ms"`
+	CIBuildMS           int                  `json:"ci_build_ms"`
+	CITestMS            int                  `json:"ci_test_ms"`
+	ImprovementState    string               `json:"improvement_state"`
+	Improvement         *ImprovementEvidence `json:"improvement"`
 }
 
 type ImprovementEvidence struct {
-	BeforeRelease ReleaseIdentity `json:"before_release"`
-	AfterRelease ReleaseIdentity `json:"after_release"`
-	SequentialWaveCount int `json:"sequential_wave_count"`
-	ParallelWaveCount int `json:"parallel_wave_count"`
-	CriticalPath int `json:"critical_path"`
-	CIWallMS int `json:"ci_wall_ms"`
-	CIBuildMS int `json:"ci_build_ms"`
-	CITestMS int `json:"ci_test_ms"`
+	BeforeRelease       ReleaseIdentity `json:"before_release"`
+	AfterRelease        ReleaseIdentity `json:"after_release"`
+	SequentialWaveCount int             `json:"sequential_wave_count"`
+	ParallelWaveCount   int             `json:"parallel_wave_count"`
+	CriticalPath        int             `json:"critical_path"`
+	CIWallMS            int             `json:"ci_wall_ms"`
+	CIBuildMS           int             `json:"ci_build_ms"`
+	CITestMS            int             `json:"ci_test_ms"`
 }
 
 type Authority struct {

@@ -39,25 +39,39 @@ func ParseMeta(path string) (MetaSource, error) {
 			meta.Namespace = fields[1]
 		case "semantic_authority_id":
 			meta.SemanticAuthorityID, err = singleValue(fields, lineNumber, "semantic_authority_id")
-			if err != nil { return MetaSource{}, err }
+			if err != nil {
+				return MetaSource{}, err
+			}
 		case "repository_identity":
 			meta.RepositoryIdentity, err = singleValue(fields, lineNumber, "repository_identity")
-			if err != nil { return MetaSource{}, err }
+			if err != nil {
+				return MetaSource{}, err
+			}
 		case "read_set":
 			meta.ReadSet, err = listValue(fields, lineNumber, "read_set")
-			if err != nil { return MetaSource{}, err }
+			if err != nil {
+				return MetaSource{}, err
+			}
 		case "write_set":
 			meta.WriteSet, err = listValue(fields, lineNumber, "write_set")
-			if err != nil { return MetaSource{}, err }
+			if err != nil {
+				return MetaSource{}, err
+			}
 		case "immutable_input_release":
 			meta.ImmutableInputRelease, err = parseRelease(fields[1:])
-			if err != nil { return MetaSource{}, fmt.Errorf("line %d: %w", lineNumber, err) }
+			if err != nil {
+				return MetaSource{}, fmt.Errorf("line %d: %w", lineNumber, err)
+			}
 		case "expected_output_release":
 			meta.ExpectedOutputRelease, err = parseRelease(fields[1:])
-			if err != nil { return MetaSource{}, fmt.Errorf("line %d: %w", lineNumber, err) }
+			if err != nil {
+				return MetaSource{}, fmt.Errorf("line %d: %w", lineNumber, err)
+			}
 		case "adoption_target":
 			meta.AdoptionTarget, err = singleValue(fields, lineNumber, "adoption_target")
-			if err != nil { return MetaSource{}, err }
+			if err != nil {
+				return MetaSource{}, err
+			}
 		case "effect":
 			if len(fields) != 2 {
 				return MetaSource{}, fmt.Errorf("line %d: invalid effect", lineNumber)
@@ -209,38 +223,60 @@ func ParseCandidate(path string) (Candidate, error) {
 			candidate.Operation = Operation{Kind: values["kind"], Artifact: values["artifact"], Value: values["value"], SuccessTerminal: values["success_terminal"], FailureTerminal: values["failure_terminal"]}
 		case "semantic_authority_id":
 			candidate.SemanticAuthorityID, err = singleValue(fields, lineNumber, "semantic_authority_id")
-			if err != nil { return Candidate{}, fmt.Errorf("%s:%d: %w", path, lineNumber, err) }
+			if err != nil {
+				return Candidate{}, fmt.Errorf("%s:%d: %w", path, lineNumber, err)
+			}
 		case "repository_identity":
 			candidate.RepositoryIdentity, err = singleValue(fields, lineNumber, "repository_identity")
-			if err != nil { return Candidate{}, fmt.Errorf("%s:%d: %w", path, lineNumber, err) }
+			if err != nil {
+				return Candidate{}, fmt.Errorf("%s:%d: %w", path, lineNumber, err)
+			}
 		case "repository_writer":
 			candidate.RepositoryWriter, err = singleValue(fields, lineNumber, "repository_writer")
-			if err != nil { return Candidate{}, fmt.Errorf("%s:%d: %w", path, lineNumber, err) }
+			if err != nil {
+				return Candidate{}, fmt.Errorf("%s:%d: %w", path, lineNumber, err)
+			}
 		case "read_set":
 			candidate.ReadSet, err = listValue(fields, lineNumber, "read_set")
-			if err != nil { return Candidate{}, fmt.Errorf("%s:%d: %w", path, lineNumber, err) }
+			if err != nil {
+				return Candidate{}, fmt.Errorf("%s:%d: %w", path, lineNumber, err)
+			}
 		case "write_set":
 			candidate.WriteSet, err = listValue(fields, lineNumber, "write_set")
-			if err != nil { return Candidate{}, fmt.Errorf("%s:%d: %w", path, lineNumber, err) }
+			if err != nil {
+				return Candidate{}, fmt.Errorf("%s:%d: %w", path, lineNumber, err)
+			}
 		case "immutable_input_release":
 			candidate.ImmutableInputRelease, err = parseRelease(fields[1:])
-			if err != nil { return Candidate{}, fmt.Errorf("%s:%d: %w", path, lineNumber, err) }
+			if err != nil {
+				return Candidate{}, fmt.Errorf("%s:%d: %w", path, lineNumber, err)
+			}
 		case "expected_output_release":
 			candidate.ExpectedOutputRelease, err = parseRelease(fields[1:])
-			if err != nil { return Candidate{}, fmt.Errorf("%s:%d: %w", path, lineNumber, err) }
+			if err != nil {
+				return Candidate{}, fmt.Errorf("%s:%d: %w", path, lineNumber, err)
+			}
 		case "adoption_target":
 			candidate.AdoptionTarget, err = singleValue(fields, lineNumber, "adoption_target")
-			if err != nil { return Candidate{}, fmt.Errorf("%s:%d: %w", path, lineNumber, err) }
+			if err != nil {
+				return Candidate{}, fmt.Errorf("%s:%d: %w", path, lineNumber, err)
+			}
 		case "depends_on":
 			candidate.DependsOn, err = listValue(fields, lineNumber, "depends_on")
-			if err != nil { return Candidate{}, fmt.Errorf("%s:%d: %w", path, lineNumber, err) }
+			if err != nil {
+				return Candidate{}, fmt.Errorf("%s:%d: %w", path, lineNumber, err)
+			}
 		case "work_receipt":
 			receipt, parseErr := parseWorkReceipt(fields[1:])
-			if parseErr != nil { return Candidate{}, fmt.Errorf("%s:%d: %w", path, lineNumber, parseErr) }
+			if parseErr != nil {
+				return Candidate{}, fmt.Errorf("%s:%d: %w", path, lineNumber, parseErr)
+			}
 			candidate.WorkReceipt = &receipt
 		case "proof":
 			values, parseErr := keyValues(fields[1:])
-			if parseErr != nil { return Candidate{}, fmt.Errorf("%s:%d: %w", path, lineNumber, parseErr) }
+			if parseErr != nil {
+				return Candidate{}, fmt.Errorf("%s:%d: %w", path, lineNumber, parseErr)
+			}
 			candidate.Proof = ProofSelection{Choice: values["choice"], Driver: values["driver"], Outcome: values["outcome"], Guardrail: values["guardrail"]}
 		default:
 			return Candidate{}, fmt.Errorf("%s:%d: unknown declaration %q", path, lineNumber, fields[0])
@@ -366,15 +402,21 @@ func singleValue(fields []string, lineNumber int, name string) (string, error) {
 
 func listValue(fields []string, lineNumber int, name string) ([]string, error) {
 	value, err := singleValue(fields, lineNumber, name)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 	items := splitList(value)
-	if len(items) == 0 { return nil, fmt.Errorf("line %d: empty %s", lineNumber, name) }
+	if len(items) == 0 {
+		return nil, fmt.Errorf("line %d: empty %s", lineNumber, name)
+	}
 	return items, nil
 }
 
 func parseRelease(fields []string) (ReleaseIdentity, error) {
 	values, err := keyValues(fields)
-	if err != nil { return ReleaseIdentity{}, err }
+	if err != nil {
+		return ReleaseIdentity{}, err
+	}
 	release := ReleaseIdentity{Repository: values["repository"], Tag: values["tag"], Digest: values["digest"]}
 	if release.Repository == "" || release.Tag == "" || release.Digest == "" {
 		return ReleaseIdentity{}, fmt.Errorf("release identity requires repository, tag, and digest")
@@ -384,20 +426,34 @@ func parseRelease(fields []string) (ReleaseIdentity, error) {
 
 func parseWorkReceipt(fields []string) (WorkReceipt, error) {
 	values, err := keyValues(fields)
-	if err != nil { return WorkReceipt{}, err }
+	if err != nil {
+		return WorkReceipt{}, err
+	}
 	intValue := func(key string) (int, error) { return integer(values, key) }
 	sequential, err := intValue("sequential_waves")
-	if err != nil { return WorkReceipt{}, err }
+	if err != nil {
+		return WorkReceipt{}, err
+	}
 	parallel, err := intValue("parallel_waves")
-	if err != nil { return WorkReceipt{}, err }
+	if err != nil {
+		return WorkReceipt{}, err
+	}
 	critical, err := intValue("critical_path")
-	if err != nil { return WorkReceipt{}, err }
+	if err != nil {
+		return WorkReceipt{}, err
+	}
 	wall, err := intValue("ci_wall_ms")
-	if err != nil { return WorkReceipt{}, err }
+	if err != nil {
+		return WorkReceipt{}, err
+	}
 	build, err := intValue("ci_build_ms")
-	if err != nil { return WorkReceipt{}, err }
+	if err != nil {
+		return WorkReceipt{}, err
+	}
 	test, err := intValue("ci_test_ms")
-	if err != nil { return WorkReceipt{}, err }
+	if err != nil {
+		return WorkReceipt{}, err
+	}
 	before := ReleaseIdentity{Repository: values["before_repository"], Tag: values["before_tag"], Digest: values["before_digest"]}
 	after := ReleaseIdentity{Repository: values["after_repository"], Tag: values["after_tag"], Digest: values["after_digest"]}
 	if before.Repository == "" || before.Tag == "" || before.Digest == "" || after.Repository == "" || after.Tag == "" || after.Digest == "" {
@@ -437,10 +493,18 @@ func validProof(proof ProofSelection) bool {
 }
 
 func sameSet(left, right []string) bool {
-	if len(left) != len(right) { return false }
+	if len(left) != len(right) {
+		return false
+	}
 	seen := make(map[string]bool, len(left))
-	for _, value := range left { seen[value] = true }
-	for _, value := range right { if !seen[value] { return false } }
+	for _, value := range left {
+		seen[value] = true
+	}
+	for _, value := range right {
+		if !seen[value] {
+			return false
+		}
+	}
 	return true
 }
 

@@ -77,11 +77,15 @@ func planWaves(candidates []Candidate, adoptionTarget string) ([]EvolutionWave, 
 
 	waves := make([]EvolutionWave, 0, len(candidates))
 	remaining := make(map[string]bool, len(candidates))
-	for _, candidate := range candidates { remaining[candidate.ID] = true }
+	for _, candidate := range candidates {
+		remaining[candidate.ID] = true
+	}
 	for len(remaining) > 0 {
 		ready := make([]string, 0)
 		for id := range remaining {
-			if indegree[id] == 0 { ready = append(ready, id) }
+			if indegree[id] == 0 {
+				ready = append(ready, id)
+			}
 		}
 		if len(ready) == 0 {
 			return nil, fmt.Errorf("CYCLIC_DEPENDENCY")
@@ -94,7 +98,9 @@ func planWaves(candidates []Candidate, adoptionTarget string) ([]EvolutionWave, 
 		}
 		for _, id := range ready {
 			delete(remaining, id)
-			for after := range edges[id] { indegree[after]-- }
+			for after := range edges[id] {
+				indegree[after]--
+			}
 		}
 		waves = append(waves, wave)
 	}
@@ -106,8 +112,12 @@ func planWaves(candidates []Candidate, adoptionTarget string) ([]EvolutionWave, 
 
 func mustSerialize(first, second Candidate) bool {
 	firstWrites, secondWrites := first.WriteSet, second.WriteSet
-	if len(firstWrites) == 0 { firstWrites = first.WriteFootprint }
-	if len(secondWrites) == 0 { secondWrites = second.WriteFootprint }
+	if len(firstWrites) == 0 {
+		firstWrites = first.WriteFootprint
+	}
+	if len(secondWrites) == 0 {
+		secondWrites = second.WriteFootprint
+	}
 	return overlap(firstWrites, secondWrites) ||
 		(first.SemanticAuthorityID != "" && first.SemanticAuthorityID == second.SemanticAuthorityID) ||
 		(first.RepositoryWriter != "" && first.RepositoryWriter == second.RepositoryWriter)
@@ -118,7 +128,9 @@ func joinIDs(ids []string) string {
 	sort.Strings(copyIDs)
 	result := ""
 	for index, id := range copyIDs {
-		if index > 0 { result += "," }
+		if index > 0 {
+			result += ","
+		}
 		result += id
 	}
 	return result
@@ -131,12 +143,24 @@ func lanePreflight(meta MetaSource, candidate Candidate) (string, *Unknown) {
 		}
 	}
 	missing := make([]string, 0)
-	if candidate.SemanticAuthorityID == "" { missing = append(missing, "semantic_authority_id") }
-	if candidate.RepositoryIdentity == "" { missing = append(missing, "repository_identity") }
-	if candidate.RepositoryWriter == "" { missing = append(missing, "repository_writer") }
-	if len(candidate.ReadSet) == 0 || len(candidate.WriteSet) == 0 { missing = append(missing, "read_set/write_set") }
-	if !validRelease(candidate.ImmutableInputRelease) || !validRelease(candidate.ExpectedOutputRelease) { missing = append(missing, "release_identity") }
-	if candidate.AdoptionTarget == "" { missing = append(missing, "adoption_target") }
+	if candidate.SemanticAuthorityID == "" {
+		missing = append(missing, "semantic_authority_id")
+	}
+	if candidate.RepositoryIdentity == "" {
+		missing = append(missing, "repository_identity")
+	}
+	if candidate.RepositoryWriter == "" {
+		missing = append(missing, "repository_writer")
+	}
+	if len(candidate.ReadSet) == 0 || len(candidate.WriteSet) == 0 {
+		missing = append(missing, "read_set/write_set")
+	}
+	if !validRelease(candidate.ImmutableInputRelease) || !validRelease(candidate.ExpectedOutputRelease) {
+		missing = append(missing, "release_identity")
+	}
+	if candidate.AdoptionTarget == "" {
+		missing = append(missing, "adoption_target")
+	}
 	if releasePresent(candidate.ImmutableInputRelease) && !validRelease(candidate.ImmutableInputRelease) {
 		return StateRefuted, nil
 	}
@@ -185,15 +209,26 @@ func preflightLanes(meta MetaSource, candidates []Candidate) []LaneResult {
 
 func laneDecision(state string) string {
 	switch state {
-	case StateClosed: return "LANE_CLOSED"
-	case StateUnknown: return "LANE_UNKNOWN"
-	default: return "LANE_REFUTED"
+	case StateClosed:
+		return "LANE_CLOSED"
+	case StateUnknown:
+		return "LANE_UNKNOWN"
+	default:
+		return "LANE_REFUTED"
 	}
 }
 
 func laneSummaryState(lanes []LaneResult) (string, string, *Unknown) {
-	for _, lane := range lanes { if lane.State == StateRefuted { return StateRefuted, "LANE_REFUTED:" + lane.CandidateID, nil } }
-	for _, lane := range lanes { if lane.State == StateUnknown { return StateUnknown, "LANE_UNKNOWN:" + lane.CandidateID, lane.Unknown } }
+	for _, lane := range lanes {
+		if lane.State == StateRefuted {
+			return StateRefuted, "LANE_REFUTED:" + lane.CandidateID, nil
+		}
+	}
+	for _, lane := range lanes {
+		if lane.State == StateUnknown {
+			return StateUnknown, "LANE_UNKNOWN:" + lane.CandidateID, lane.Unknown
+		}
+	}
 	return StateClosed, "", nil
 }
 
@@ -216,6 +251,8 @@ func observedImprovement(candidates []Candidate) *ImprovementEvidence {
 
 func plannedOrders(waves []EvolutionWave) [][]string {
 	order := make([]string, 0)
-	for _, wave := range waves { order = append(order, wave.CandidateIDs...) }
+	for _, wave := range waves {
+		order = append(order, wave.CandidateIDs...)
+	}
 	return [][]string{order}
 }

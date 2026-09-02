@@ -146,11 +146,11 @@ func Run(input RunInput) (Evidence, error) {
 		wallMS = 1
 	}
 	metrics := Metrics{
-		WallMS:     wallMS,
-		PeakRSSKiB: peakRSSKiB(),
-		Inventory:  inventory,
-		Generated:  GeneratedMetrics{Files: len(context.BundleNames), Bytes: context.BundleBytes},
-		Tests:      TestMetrics{Total: FixedCaseCount, Selected: len(results), Executed: len(results), Reused: replayCount(results), Failed: summary.Refuted, Unknown: summary.Unknown},
+		WallMS:           wallMS,
+		PeakRSSKiB:       peakRSSKiB(),
+		Inventory:        inventory,
+		Generated:        GeneratedMetrics{Files: len(context.BundleNames), Bytes: context.BundleBytes},
+		Tests:            TestMetrics{Total: FixedCaseCount, Selected: len(results), Executed: len(results), Reused: replayCount(results), Failed: summary.Refuted, Unknown: summary.Unknown},
 		ImprovementState: "UNKNOWN",
 	}
 	if improvement := observedImprovement(candidates); improvement != nil {
@@ -203,7 +203,7 @@ func evaluateCase(context *runContext, declared CaseDecl) (CaseResult, error) {
 		CombinedCapabilities: unionCandidateValues(candidates, func(candidate Candidate) []string { return candidate.Capabilities }),
 		CombinedEffectPre:    unionCandidateValues(candidates, func(candidate Candidate) []string { return candidate.EffectPre }),
 		CombinedEffectPost:   unionCandidateValues(candidates, func(candidate Candidate) []string { return candidate.EffectPost }),
-		Proof: declared.Proof,
+		Proof:                declared.Proof,
 	}
 	permutations, err := allPermutations(declared.CandidateIDs)
 	if err != nil {
@@ -213,7 +213,11 @@ func evaluateCase(context *runContext, declared CaseDecl) (CaseResult, error) {
 	if waveErr == nil {
 		result.Waves = waves
 		result.SequentialWaveCount = len(waves)
-		for _, wave := range waves { if wave.Parallel { result.ParallelWaveCount++ } }
+		for _, wave := range waves {
+			if wave.Parallel {
+				result.ParallelWaveCount++
+			}
+		}
 		result.CriticalPath = len(waves)
 		if len(waves) > 0 && waves[len(waves)-1].Final {
 			permutations = plannedOrders(waves)
