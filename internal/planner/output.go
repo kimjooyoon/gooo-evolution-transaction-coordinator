@@ -31,7 +31,7 @@ type ConformanceInput struct {
 
 func Run(input RunInput) (Evidence, error) {
 	started := time.Now()
-	meta, contract, err := ParseAndValidate(input.MetaPath, input.ContractPath)
+	meta, _, err := ParseAndValidate(input.MetaPath, input.ContractPath)
 	if err != nil {
 		return Evidence{}, err
 	}
@@ -89,7 +89,7 @@ func Run(input RunInput) (Evidence, error) {
 
 func RunConformance(input ConformanceInput) (ConformanceSummary, error) {
 	started := time.Now()
-	meta, contract, err := ParseAndValidate(input.MetaPath, input.ContractPath)
+	meta, _, err := ParseAndValidate(input.MetaPath, input.ContractPath)
 	if err != nil {
 		return ConformanceSummary{}, err
 	}

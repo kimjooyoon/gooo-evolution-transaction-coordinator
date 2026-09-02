@@ -347,7 +347,7 @@ func listFields(fields []string, lineNumber int, name string) ([]string, error) 
 	return result, nil
 }
 
-func commaValue(fields []string, lineNumber, name, separator string) ([]string, error) {
+func commaValue(fields []string, lineNumber int, name, separator string) ([]string, error) {
 	value, err := singleValue(fields, lineNumber, name)
 	if err != nil {
 		return nil, err
