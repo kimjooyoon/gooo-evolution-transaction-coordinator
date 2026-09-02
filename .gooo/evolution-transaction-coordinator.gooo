@@ -6,7 +6,7 @@ repository_identity github.com/kimjooyoon/gooo-evolution-transaction-coordinator
 read_set .gooo/evolution-transaction-coordinator.gooo,contracts/denominator-v2.json
 write_set caller-owned-output
 immutable_input_release repository=github.com/kimjooyoon/gooo-evolution-transaction-coordinator tag=v0.1.1 digest=sha256:9a83bccb0f6bd947d7d621a3a3f3f4059a505ebd7958d077ddd9c692e0ecf02b
-expected_output_release repository=github.com/kimjooyoon/gooo-evolution-transaction-coordinator tag=v0.2.0 digest=sha256:pending-v0.2.0
+expected_output_release repository=github.com/kimjooyoon/gooo-evolution-transaction-coordinator tag=v0.2.1 digest=sha256:pending-v0.2.1
 adoption_target gooo-self-improvement-ledger
 
 # This declaration owns the vocabulary, precedence, fixed denominator, and
