@@ -29,6 +29,9 @@ jobs:
         run: |
           set -euo pipefail
           files=$(gofmt -l $(git ls-files '*.go'))
+          if test -n "$files"; then
+            gofmt -d $files
+          fi
           test -z "$files"
       - name: Verify vet
         run: go vet ./...
@@ -67,6 +70,9 @@ jobs:
         run: |
           set -euo pipefail
           files=$(gofmt -l $(git ls-files '*.go'))
+          if test -n "$files"; then
+            gofmt -d $files
+          fi
           test -z "$files"
       - name: Verify vet
         run: go vet ./...
