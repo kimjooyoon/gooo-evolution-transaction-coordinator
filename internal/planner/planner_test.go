@@ -13,10 +13,10 @@ func testMeta() MetaSource {
 
 func testCandidate(id string, reads, writes []string) CandidateInput {
 	return CandidateInput{
-		OperationIdentity: OperationIdentity{CandidateID: id, OperationDigest: "sha256:0000000000000000000000000000000000000000000000000000000000000001", Kind: "rewrite", Origin: "test"},
+		OperationIdentity:     OperationIdentity{CandidateID: id, OperationDigest: "sha256:0000000000000000000000000000000000000000000000000000000000000001", Kind: "rewrite", Origin: "test"},
 		ImmutableInputRelease: &testRelease, SemanticReadSet: reads, SemanticWriteSet: writes,
 		AuthorityScope: &AuthorityScope{Permissions: []string{"READ_INPUT", "WRITE_CALLER_OUTPUT"}},
-		Target: &TargetIdentity{Repository: testRelease.Repository, Ledger: "none"},
+		Target:                &TargetIdentity{Repository: testRelease.Repository, Ledger: "none"},
 	}
 }
 
