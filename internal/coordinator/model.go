@@ -345,14 +345,14 @@ type LocalMetrics struct {
 }
 
 type CIMetrics struct {
-	State      string  `json:"state"`
-	Source     string  `json:"source"`
-	Reason     string  `json:"reason"`
-	RunID      *int64  `json:"run_id"`
-	CommitSHA  *string `json:"commit_sha"`
-	WallMS     *int    `json:"wall_ms"`
-	BuildMS    *int    `json:"build_ms"`
-	TestMS     *int    `json:"test_ms"`
+	State     string  `json:"state"`
+	Source    string  `json:"source"`
+	Reason    string  `json:"reason"`
+	RunID     *int64  `json:"run_id"`
+	CommitSHA *string `json:"commit_sha"`
+	WallMS    *int    `json:"wall_ms"`
+	BuildMS   *int    `json:"build_ms"`
+	TestMS    *int    `json:"test_ms"`
 }
 
 type IncidentEvidence struct {
