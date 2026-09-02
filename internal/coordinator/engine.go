@@ -172,7 +172,7 @@ func Run(input RunInput) (Evidence, error) {
 		Precedence: append([]string{}, meta.Precedence...), UnknownFields: append([]string{}, meta.UnknownFields...),
 		DenominatorID: meta.Denominator.ID, FixedCaseCount: FixedCaseCount, Summary: summary,
 		Candidates: candidates, Cases: results, Metrics: metrics,
-		Authority: Authority{RepositoryWrites: 0, SourceMutations: 0, CommitAuthority: 0, MergeAuthority: 0, ReleaseMutation: 0, LocalTestExecutions: 0, OperatorAuthoring: 0, CIRuntimeAuthority: 0, LocalFormatExecutions: 2},
+		Authority:     Authority{RepositoryWrites: 0, SourceMutations: 0, CommitAuthority: 0, MergeAuthority: 0, ReleaseMutation: 0, LocalTestExecutions: 0, OperatorAuthoring: 0, CIRuntimeAuthority: 0, LocalFormatExecutions: 3},
 		ArtifactNames: artifactNames, ArtifactCount: len(artifactNames), AtomicAbortRule: meta.AtomicAbort, BundleRule: meta.Bundle,
 		OperationalIncidents: []string{"OPERATIONAL_REFUTED", "LOCAL_FORMAT_EXECUTED"},
 	}

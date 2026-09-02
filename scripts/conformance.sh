@@ -34,7 +34,7 @@ jq -e '
   .metrics.generated.files == 4 and
   .metrics.generated.bytes > 0 and
   .metrics.tests == {total:8,selected:8,executed:8,reused:1,failed:3,unknown:1} and
-  .authority == {repository_writes:0,source_mutations:0,commit_authority:0,merge_authority:0,release_mutation:0,local_test_executions:0,operator_authoring:0,ci_runtime_authority:0,local_format_executions:2} and
+  .authority == {repository_writes:0,source_mutations:0,commit_authority:0,merge_authority:0,release_mutation:0,local_test_executions:0,operator_authoring:0,ci_runtime_authority:0,local_format_executions:3} and
   .operational_incidents == ["OPERATIONAL_REFUTED", "LOCAL_FORMAT_EXECUTED"] and
   .artifact_count == 6 and
   ([.cases[] | select(.state == "CLOSED")] | length) == 4 and
