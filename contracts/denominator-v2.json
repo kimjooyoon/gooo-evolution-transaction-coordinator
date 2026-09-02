@@ -1,0 +1,18 @@
+{
+  "schema": "gooo/evolution-transaction-coordinator/denominator/v2",
+  "id": "evolution-transaction-coordinator-v2",
+  "version": "v2",
+  "cell_count": 8,
+  "fixed": true,
+  "append_only_from": "contracts/denominator-v1.json",
+  "cases": [
+    {"ordinal": 1, "id": "case-01-disjoint-commuting", "kind": "disjoint_footprint", "expected": "CLOSED", "proof": {"choice": "FOUNDATION", "driver": "orthogonal_write_sets", "outcome": "one_parallel_wave", "guardrail": "no_shared_authority_or_writer"}},
+    {"ordinal": 2, "id": "case-02-overlapping-equivalent", "kind": "overlapping_equivalent", "expected": "CLOSED", "proof": {"choice": "COHERENCE", "driver": "serialized_overlap", "outcome": "exact_shared_artifact", "guardrail": "single_writer_order"}},
+    {"ordinal": 3, "id": "case-03-explicit-footprint-conflict", "kind": "explicit_footprint_conflict", "expected": "REFUTED", "proof": {"choice": "COHERENCE", "driver": "non_equivalent_write_set", "outcome": "refuted_conflict", "guardrail": "atomic_abort"}},
+    {"ordinal": 4, "id": "case-04-order-dependent-terminal-reason", "kind": "order_dependent_terminal_reason", "expected": "REFUTED", "proof": {"choice": "COHERENCE", "driver": "causal_dependency", "outcome": "refuted_order_dependence", "guardrail": "causal_frontier_only"}},
+    {"ordinal": 5, "id": "case-05-forbidden-combined-effect", "kind": "forbidden_combined_effect", "expected": "REFUTED", "proof": {"choice": "COHERENCE", "driver": "forbidden_effect_policy", "outcome": "refuted_runtime_authority", "guardrail": "runtime_authority_zero"}},
+    {"ordinal": 6, "id": "case-06-missing-footprint", "kind": "missing_footprint", "expected": "UNKNOWN", "proof": {"choice": "FOUNDATION", "driver": "missing_identity_evidence", "outcome": "unknown_frontier", "guardrail": "unrelated_lane_continues"}},
+    {"ordinal": 7, "id": "case-07-replay", "kind": "replay", "expected": "CLOSED", "proof": {"choice": "REGRESSION", "driver": "deterministic_replay", "outcome": "byte_stable_vector", "guardrail": "immutable_input_release"}},
+    {"ordinal": 8, "id": "case-08-final-ledger-adoption", "kind": "final_ledger_adoption", "expected": "CLOSED", "proof": {"choice": "REGRESSION", "driver": "single_ledger_writer", "outcome": "atomic_final_wave", "guardrail": "no_early_adoption"}}
+  ]
+}

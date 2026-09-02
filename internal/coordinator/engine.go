@@ -106,7 +106,7 @@ func Run(input RunInput) (Evidence, error) {
 	}
 	evaluatorDigest, err := DigestValue(map[string]string{
 		"evaluator": "gooo-evolution-transaction-coordinator",
-		"version":   "v1",
+		"version":   "v2",
 		"source":    meta.SourceDigest,
 		"contract":  DigestBytes(contractData),
 	})
@@ -151,17 +151,28 @@ func Run(input RunInput) (Evidence, error) {
 		Inventory:  inventory,
 		Generated:  GeneratedMetrics{Files: len(context.BundleNames), Bytes: context.BundleBytes},
 		Tests:      TestMetrics{Total: FixedCaseCount, Selected: len(results), Executed: len(results), Reused: replayCount(results), Failed: summary.Refuted, Unknown: summary.Unknown},
+		ImprovementState: "UNKNOWN",
+	}
+	if improvement := observedImprovement(candidates); improvement != nil {
+		metrics.SequentialWaveCount = improvement.SequentialWaveCount
+		metrics.ParallelWaveCount = improvement.ParallelWaveCount
+		metrics.CriticalPath = improvement.CriticalPath
+		metrics.CIWallMS = improvement.CIWallMS
+		metrics.CIBuildMS = improvement.CIBuildMS
+		metrics.CITestMS = improvement.CITestMS
+		metrics.ImprovementState = "OBSERVED"
+		metrics.Improvement = improvement
 	}
 	artifactNames := append([]string{}, context.BundleNames...)
 	artifactNames = append(artifactNames, "coordinator-report.md", "evidence.json")
 	sort.Strings(artifactNames)
 	evidence := Evidence{
-		Schema: EvidenceSchema, Version: "v1", SourceDigest: context.SourceDigest,
+		Schema: EvidenceSchema, Version: "v2", SourceDigest: context.SourceDigest,
 		ContractDigest: context.ContractDigest, EvaluatorDigest: context.EvaluatorDigest,
 		Precedence: append([]string{}, meta.Precedence...), UnknownFields: append([]string{}, meta.UnknownFields...),
 		DenominatorID: meta.Denominator.ID, FixedCaseCount: FixedCaseCount, Summary: summary,
 		Candidates: candidates, Cases: results, Metrics: metrics,
-		Authority:     Authority{RepositoryWrites: 0, SourceMutations: 0, CommitAuthority: 0, MergeAuthority: 0, ReleaseMutation: 0, LocalTestExecutions: 0},
+		Authority:     Authority{RepositoryWrites: 0, SourceMutations: 0, CommitAuthority: 0, MergeAuthority: 0, ReleaseMutation: 0, LocalTestExecutions: 0, OperatorAuthoring: 0, CIRuntimeAuthority: 0},
 		ArtifactNames: artifactNames, ArtifactCount: len(artifactNames), AtomicAbortRule: meta.AtomicAbort, BundleRule: meta.Bundle,
 	}
 	if err := writeEvidence(outputRoot, evidence); err != nil {
@@ -192,12 +203,30 @@ func evaluateCase(context *runContext, declared CaseDecl) (CaseResult, error) {
 		CombinedCapabilities: unionCandidateValues(candidates, func(candidate Candidate) []string { return candidate.Capabilities }),
 		CombinedEffectPre:    unionCandidateValues(candidates, func(candidate Candidate) []string { return candidate.EffectPre }),
 		CombinedEffectPost:   unionCandidateValues(candidates, func(candidate Candidate) []string { return candidate.EffectPost }),
+		Proof: declared.Proof,
 	}
 	permutations, err := allPermutations(declared.CandidateIDs)
 	if err != nil {
 		return CaseResult{}, fmt.Errorf("case %q: %w", declared.ID, err)
 	}
-	preflightState, preflightReason, preflightUnknown := preflight(context.Meta, candidates)
+	waves, waveErr := planWaves(candidates, context.Meta.AdoptionTarget)
+	if waveErr == nil {
+		result.Waves = waves
+		result.SequentialWaveCount = len(waves)
+		for _, wave := range waves { if wave.Parallel { result.ParallelWaveCount++ } }
+		result.CriticalPath = len(waves)
+		if len(waves) > 0 && waves[len(waves)-1].Final {
+			permutations = plannedOrders(waves)
+		}
+	}
+	result.Lanes = preflightLanes(context.Meta, candidates)
+	preflightState, preflightReason, preflightUnknown := laneSummaryState(result.Lanes)
+	if waveErr != nil {
+		preflightState, preflightReason, preflightUnknown = StateRefuted, waveErr.Error(), nil
+	}
+	if conflict := footprintConflict(candidates); conflict != "" {
+		preflightState, preflightReason, preflightUnknown = StateRefuted, "EXPLICIT_FOOTPRINT_CONFLICT:"+conflict, nil
+	}
 	for _, order := range permutations {
 		observation := PermutationResult{Order: append([]string{}, order...), State: preflightState, GeneratedArtifact: emptyArtifact(), TerminalReason: preflightReason, Unknown: preflightUnknown}
 		if preflightState == StateUnknown {
@@ -456,11 +485,19 @@ func emitBundle(context *runContext, declared CaseDecl, candidates []Candidate) 
 		return ArtifactSnapshot{}, err
 	}
 	var builder strings.Builder
-	builder.WriteString("gooo combined_candidate_bundle v1\n")
+	builder.WriteString("gooo combined_candidate_bundle v2\n")
 	fmt.Fprintf(&builder, "bundle case=%s state=CLOSED\n", declared.ID)
 	for _, candidate := range candidates {
 		fmt.Fprintf(&builder, "candidate id=%s type=%s\n", candidate.ID, candidate.Type)
 		fmt.Fprintf(&builder, "origin author=%s source=%s\n", candidate.Origin.Author, candidate.Origin.Source)
+		fmt.Fprintf(&builder, "semantic_authority_id %s\n", candidate.SemanticAuthorityID)
+		fmt.Fprintf(&builder, "repository_identity %s\n", candidate.RepositoryIdentity)
+		fmt.Fprintf(&builder, "repository_writer %s\n", candidate.RepositoryWriter)
+		fmt.Fprintf(&builder, "read_set %s\n", strings.Join(candidate.ReadSet, ","))
+		fmt.Fprintf(&builder, "write_set %s\n", strings.Join(candidate.WriteSet, ","))
+		fmt.Fprintf(&builder, "immutable_input_release repository=%s tag=%s digest=%s\n", candidate.ImmutableInputRelease.Repository, candidate.ImmutableInputRelease.Tag, candidate.ImmutableInputRelease.Digest)
+		fmt.Fprintf(&builder, "expected_output_release repository=%s tag=%s digest=%s\n", candidate.ExpectedOutputRelease.Repository, candidate.ExpectedOutputRelease.Tag, candidate.ExpectedOutputRelease.Digest)
+		fmt.Fprintf(&builder, "adoption_target %s\n", candidate.AdoptionTarget)
 		fmt.Fprintf(&builder, "footprint read=%s write=%s\n", strings.Join(candidate.ReadFootprint, ","), strings.Join(candidate.WriteFootprint, ","))
 		fmt.Fprintf(&builder, "effect pre=%s post=%s\n", strings.Join(candidate.EffectPre, ","), strings.Join(candidate.EffectPost, ","))
 		fmt.Fprintf(&builder, "operation kind=%s artifact=%s value=\"%s\"\n", candidate.Operation.Kind, candidate.Operation.Artifact, candidate.Operation.Value)
@@ -496,6 +533,17 @@ func writeReport(outputRoot string, evidence Evidence) error {
 	for _, item := range evidence.Cases {
 		fmt.Fprintf(&builder, "| `%s` | `%s` | `%s` | %d | %t | `%s` |\n", item.ID, item.Expected, item.State, len(item.Permutations), item.ReplayEqual, item.Decision)
 	}
+	builder.WriteString("\n## Deterministic evolution waves and proof choices\n\n")
+	builder.WriteString("| case | proof choice | driver | outcome | guardrail | waves | critical path |\n|---|---|---|---|---|---:|---:|\n")
+	for _, item := range evidence.Cases {
+		fmt.Fprintf(&builder, "| `%s` | `%s` | `%s` | `%s` | `%s` | %d | %d |\n", item.ID, item.Proof.Choice, item.Proof.Driver, item.Proof.Outcome, item.Proof.Guardrail, len(item.Waves), item.CriticalPath)
+	}
+	for _, item := range evidence.Cases {
+		fmt.Fprintf(&builder, "\n### Lanes: %s\n\n", item.ID)
+		for _, lane := range item.Lanes {
+			fmt.Fprintf(&builder, "- `%s`: `%s` (%s)\n", lane.CandidateID, lane.State, lane.Decision)
+		}
+	}
 	builder.WriteString("\n## Exact vector evidence\n\n")
 	for _, item := range evidence.Cases {
 		fmt.Fprintf(&builder, "### %s\n\n", item.ID)
@@ -504,10 +552,10 @@ func writeReport(outputRoot string, evidence Evidence) error {
 		}
 	}
 	builder.WriteString("\n## Authority and exact integer metrics\n\n")
-	fmt.Fprintf(&builder, "- repository_writes: `%d`; source_mutations: `%d`; commit_authority: `%d`; merge_authority: `%d`; release_mutation: `%d`\n", evidence.Authority.RepositoryWrites, evidence.Authority.SourceMutations, evidence.Authority.CommitAuthority, evidence.Authority.MergeAuthority, evidence.Authority.ReleaseMutation)
+	fmt.Fprintf(&builder, "- repository_writes: `%d`; source_mutations: `%d`; commit_authority: `%d`; merge_authority: `%d`; release_mutation: `%d`; operator_authoring: `%d`; ci_runtime_authority: `%d`\n", evidence.Authority.RepositoryWrites, evidence.Authority.SourceMutations, evidence.Authority.CommitAuthority, evidence.Authority.MergeAuthority, evidence.Authority.ReleaseMutation, evidence.Authority.OperatorAuthoring, evidence.Authority.CIRuntimeAuthority)
 	fmt.Fprintf(&builder, "- inventory files/dirs: `%d`/`%d`; Go/Gooo files: `%d`/`%d`; physical_lines: `%d`\n", evidence.Metrics.Inventory.Files, evidence.Metrics.Inventory.Directories, evidence.Metrics.Inventory.GoFiles, evidence.Metrics.Inventory.GoooFiles, evidence.Metrics.Inventory.PhysicalLines)
 	fmt.Fprintf(&builder, "- generated bundle files/bytes: `%d`/`%d`; artifact_count: `%d`; wall_ms: `%d`; peak_rss_kib: `%d`\n", evidence.Metrics.Generated.Files, evidence.Metrics.Generated.Bytes, evidence.ArtifactCount, evidence.Metrics.WallMS, evidence.Metrics.PeakRSSKiB)
-	fmt.Fprintf(&builder, "- tests total/selected/executed/reused/failed/unknown: `%d`/`%d`/`%d`/`%d`/`%d`/`%d`\n", evidence.Metrics.Tests.Total, evidence.Metrics.Tests.Selected, evidence.Metrics.Tests.Executed, evidence.Metrics.Tests.Reused, evidence.Metrics.Tests.Failed, evidence.Metrics.Tests.Unknown)
+	fmt.Fprintf(&builder, "- tests total/selected/executed/reused/failed/unknown: `%d`/`%d`/`%d`/`%d`/`%d`/`%d`; receipt improvement: `%s`\n", evidence.Metrics.Tests.Total, evidence.Metrics.Tests.Selected, evidence.Metrics.Tests.Executed, evidence.Metrics.Tests.Reused, evidence.Metrics.Tests.Failed, evidence.Metrics.Tests.Unknown, evidence.Metrics.ImprovementState)
 	builder.WriteString("- root README: excluded from inventory; all fixture and output writes are caller-owned.\n")
 	return os.WriteFile(filepath.Join(outputRoot, "coordinator-report.md"), []byte(builder.String()), 0o644)
 }
@@ -686,6 +734,9 @@ func summarizeCandidates(candidates []Candidate) []FootprintSummary {
 			CandidateID: candidate.ID, Read: append([]string{}, candidate.ReadFootprint...), Write: append([]string{}, candidate.WriteFootprint...),
 			Origin: candidate.Origin, Capabilities: append([]string{}, candidate.Capabilities...), EffectPre: append([]string{}, candidate.EffectPre...), EffectPost: append([]string{}, candidate.EffectPost...),
 			Preconditions: cloneMap(candidate.Preconditions), Postconditions: cloneMap(candidate.Postconditions),
+			SemanticAuthorityID: candidate.SemanticAuthorityID, RepositoryIdentity: candidate.RepositoryIdentity, RepositoryWriter: candidate.RepositoryWriter,
+			ReadSet: append([]string{}, candidate.ReadSet...), WriteSet: append([]string{}, candidate.WriteSet...), ImmutableInputRelease: candidate.ImmutableInputRelease,
+			ExpectedOutputRelease: candidate.ExpectedOutputRelease, AdoptionTarget: candidate.AdoptionTarget, DependsOn: append([]string{}, candidate.DependsOn...), Proof: candidate.Proof,
 		})
 	}
 	return result

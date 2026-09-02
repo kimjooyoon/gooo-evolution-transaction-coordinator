@@ -1,4 +1,8 @@
-# Evolution transaction coordinator v1
+# Evolution transaction coordinator v2
+
+Version 2 is append-only over the released v1 denominator. The v1 contract is
+kept unchanged for historical evidence; v2 adds an orthogonal evolution wave
+and final single-writer ledger adoption cell.
 
 ## Problem
 
@@ -10,19 +14,24 @@ atomic composition.
 
 ## Protocol
 
-1. Parse the authoritative `.gooo` source and fixed denominator contract.
+1. Parse the authoritative `.gooo` source and append-only denominator contract,
+   including semantic authority, repository identity, read/write sets, and
+   immutable release identities.
 2. Parse at least two typed candidate sources.
 3. Lower each candidate into a footprint summary containing origin,
    capabilities, effect pre/postconditions, read footprint, write footprint,
    and typed operation.
-4. Enumerate all permutations of the caller's candidate IDs.
-5. Copy the compiler fixture into a fresh caller-owned directory per
+4. Build a deterministic dependency graph. Disjoint candidates enter the same
+   wave; overlapping writes, authorities, and repository writers serialize.
+   Ledger adoption has one writer and is the atomic final wave.
+5. Enumerate every permitted candidate order within that plan.
+6. Copy the compiler fixture into a fresh caller-owned directory per
    permutation and apply the operations in order.
-6. Lower the applied state into generated Go, parse it with the Go parser, and
+7. Lower the applied state into generated Go, parse it with the Go parser, and
    record its artifact digest map, terminal reason, and ordered effect trace.
-7. Compare every permutation as an exact vector. The vector is not a scalar
+8. Compare every permutation as an exact vector. The vector is not a scalar
    score and cannot be replaced by a sum or weighted average.
-8. Resolve the case using the declared precedence
+9. Resolve the case using the declared precedence
    `REFUTED > UNKNOWN > CLOSED`.
 
 ## Promotion

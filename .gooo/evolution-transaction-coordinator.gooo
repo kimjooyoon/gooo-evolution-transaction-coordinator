@@ -1,5 +1,13 @@
-gooo evolution_transaction_coordinator v1
-namespace gooo://evolution-transaction-coordinator/v1
+gooo evolution_transaction_coordinator v2
+namespace gooo://evolution-transaction-coordinator/v2
+
+semantic_authority_id gooo://evolution-transaction-coordinator/v2
+repository_identity github.com/kimjooyoon/gooo-evolution-transaction-coordinator
+read_set .gooo/evolution-transaction-coordinator.gooo,contracts/denominator-v2.json
+write_set caller-owned-output
+immutable_input_release repository=github.com/kimjooyoon/gooo-evolution-transaction-coordinator tag=v0.1.1 digest=sha256:9a83bccb0f6bd947d7d621a3a3f3f4059a505ebd7958d077ddd9c692e0ecf02b
+expected_output_release repository=github.com/kimjooyoon/gooo-evolution-transaction-coordinator tag=v0.2.0 digest=sha256:pending-v0.2.0
+adoption_target gooo-self-improvement-ledger
 
 # This declaration owns the vocabulary, precedence, fixed denominator, and
 # promotion rules. Go parses, lowers, executes, and verifies this source.
@@ -26,15 +34,17 @@ rule id=order_dependent_terminal_reason condition=terminal_reason_differs_by_ord
 rule id=forbidden_combined_effect condition=combined_effect_forbidden outcome=REFUTED terminal=FORBIDDEN_COMBINED_EFFECT
 rule id=missing_footprint condition=semantic_footprint_missing outcome=UNKNOWN terminal=MISSING_SEMANTIC_FOOTPRINT
 rule id=replay condition=replay_vector_exact outcome=CLOSED terminal=REPLAY_VECTOR_EXACT
+rule id=final_ledger_adoption condition=single_writer_atomic_final_wave outcome=CLOSED terminal=FINAL_LEDGER_ADOPTION_EXACT
 
-denominator id=evolution-transaction-coordinator-v1 cell_count=7
-case id=case-01-disjoint-commuting expected=CLOSED kind=disjoint_footprint rule=disjoint_footprint candidates=add-label,add-helper replay=false
-case id=case-02-overlapping-equivalent expected=CLOSED kind=overlapping_equivalent rule=overlapping_equivalent candidates=set-banner-a,set-banner-b replay=false
-case id=case-03-explicit-footprint-conflict expected=REFUTED kind=explicit_footprint_conflict rule=explicit_footprint_conflict candidates=set-mode-a,set-mode-b replay=false
-case id=case-04-order-dependent-terminal-reason expected=REFUTED kind=order_dependent_terminal_reason rule=order_dependent_terminal_reason candidates=order-first,order-second replay=false
-case id=case-05-forbidden-combined-effect expected=REFUTED kind=forbidden_combined_effect rule=forbidden_combined_effect candidates=emit-safe,emit-repository-write replay=false
-case id=case-06-missing-footprint expected=UNKNOWN kind=missing_footprint rule=missing_footprint candidates=missing-footprint,add-helper replay=false
-case id=case-07-replay expected=CLOSED kind=replay rule=replay candidates=add-label,add-helper replay=true
+denominator id=evolution-transaction-coordinator-v2 cell_count=8
+case ordinal=1 id=case-01-disjoint-commuting expected=CLOSED kind=disjoint_footprint rule=disjoint_footprint candidates=add-label,add-helper replay=false proof_choice=FOUNDATION proof_driver=orthogonal_write_sets proof_outcome=one_parallel_wave proof_guardrail=no_shared_authority_or_writer
+case ordinal=2 id=case-02-overlapping-equivalent expected=CLOSED kind=overlapping_equivalent rule=overlapping_equivalent candidates=set-banner-a,set-banner-b replay=false proof_choice=COHERENCE proof_driver=serialized_overlap proof_outcome=exact_shared_artifact proof_guardrail=single_writer_order
+case ordinal=3 id=case-03-explicit-footprint-conflict expected=REFUTED kind=explicit_footprint_conflict rule=explicit_footprint_conflict candidates=set-mode-a,set-mode-b replay=false proof_choice=COHERENCE proof_driver=non_equivalent_write_set proof_outcome=refuted_conflict proof_guardrail=atomic_abort
+case ordinal=4 id=case-04-order-dependent-terminal-reason expected=REFUTED kind=order_dependent_terminal_reason rule=order_dependent_terminal_reason candidates=order-first,order-second replay=false proof_choice=COHERENCE proof_driver=causal_dependency proof_outcome=refuted_order_dependence proof_guardrail=causal_frontier_only
+case ordinal=5 id=case-05-forbidden-combined-effect expected=REFUTED kind=forbidden_combined_effect rule=forbidden_combined_effect candidates=emit-safe,emit-repository-write replay=false proof_choice=COHERENCE proof_driver=forbidden_effect_policy proof_outcome=refuted_runtime_authority proof_guardrail=runtime_authority_zero
+case ordinal=6 id=case-06-missing-footprint expected=UNKNOWN kind=missing_footprint rule=missing_footprint candidates=missing-footprint,add-helper replay=false proof_choice=FOUNDATION proof_driver=missing_identity_evidence proof_outcome=unknown_frontier proof_guardrail=unrelated_lane_continues
+case ordinal=7 id=case-07-replay expected=CLOSED kind=replay rule=replay candidates=add-label,add-helper replay=true proof_choice=REGRESSION proof_driver=deterministic_replay proof_outcome=byte_stable_vector proof_guardrail=immutable_input_release
+case ordinal=8 id=case-08-final-ledger-adoption expected=CLOSED kind=final_ledger_adoption rule=final_ledger_adoption candidates=add-label,adopt-ledger replay=false proof_choice=REGRESSION proof_driver=single_ledger_writer proof_outcome=atomic_final_wave proof_guardrail=no_early_adoption
 
 atomic_abort states=UNKNOWN,REFUTED promote_bundle=false partial_promotion=false
 bundle closed_only=true artifact=combined-candidate-bundle.gooo digest=sha256

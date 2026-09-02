@@ -7,14 +7,14 @@ import (
 )
 
 const (
-	MetaSchema       = "gooo/evolution-transaction-coordinator/source/v1"
-	ContractSchema   = "gooo/evolution-transaction-coordinator/denominator/v1"
-	EvidenceSchema   = "gooo/evolution-transaction-coordinator/evidence/v1"
+	MetaSchema       = "gooo/evolution-transaction-coordinator/source/v2"
+	ContractSchema   = "gooo/evolution-transaction-coordinator/denominator/v2"
+	EvidenceSchema   = "gooo/evolution-transaction-coordinator/evidence/v2"
 	CandidateSchema  = "gooo/evolution-transaction-coordinator/candidate/v1"
 	StateClosed      = "CLOSED"
 	StateUnknown     = "UNKNOWN"
 	StateRefuted     = "REFUTED"
-	FixedCaseCount   = 7
+	FixedCaseCount   = 8
 	MinimumCandidate = 2
 )
 
@@ -32,6 +32,13 @@ type MetaSource struct {
 	Cases                    []CaseDecl
 	AtomicAbort              AtomicAbortDecl
 	Bundle                   BundleDecl
+	SemanticAuthorityID      string
+	RepositoryIdentity       string
+	ReadSet                  []string
+	WriteSet                 []string
+	ImmutableInputRelease    ReleaseIdentity
+	ExpectedOutputRelease    ReleaseIdentity
+	AdoptionTarget           string
 	SourceDigest             string
 }
 
@@ -60,6 +67,7 @@ type CaseDecl struct {
 	Expected     string
 	CandidateIDs []string
 	Replay       bool
+	Proof        ProofSelection
 }
 
 type AtomicAbortDecl struct {
@@ -80,6 +88,7 @@ type Contract struct {
 	Version   string         `json:"version"`
 	CellCount int            `json:"cell_count"`
 	Fixed     bool           `json:"fixed"`
+	AppendOnlyFrom string     `json:"append_only_from"`
 	Cases     []ContractCase `json:"cases"`
 }
 
@@ -88,6 +97,7 @@ type ContractCase struct {
 	ID       string `json:"id"`
 	Kind     string `json:"kind"`
 	Expected string `json:"expected"`
+	Proof    ProofSelection `json:"proof"`
 }
 
 type Candidate struct {
@@ -104,8 +114,43 @@ type Candidate struct {
 	Preconditions  map[string]string `json:"preconditions"`
 	Postconditions map[string]string `json:"postconditions"`
 	Operation      Operation         `json:"operation"`
+	SemanticAuthorityID string `json:"semantic_authority_id"`
+	RepositoryIdentity  string `json:"repository_identity"`
+	RepositoryWriter    string `json:"repository_writer"`
+	ReadSet             []string `json:"read_set"`
+	WriteSet            []string `json:"write_set"`
+	ImmutableInputRelease ReleaseIdentity `json:"immutable_input_release"`
+	ExpectedOutputRelease ReleaseIdentity `json:"expected_output_release"`
+	AdoptionTarget      string `json:"adoption_target"`
+	DependsOn           []string `json:"depends_on"`
+	WorkReceipt         *WorkReceipt `json:"work_receipt,omitempty"`
+	Proof               ProofSelection `json:"proof"`
 	SourcePath     string            `json:"source_path"`
 	SourceDigest   string            `json:"source_digest"`
+}
+
+type ReleaseIdentity struct {
+	Repository string `json:"repository"`
+	Tag        string `json:"tag"`
+	Digest     string `json:"digest"`
+}
+
+type WorkReceipt struct {
+	BeforeRelease      ReleaseIdentity `json:"before_release"`
+	AfterRelease       ReleaseIdentity `json:"after_release"`
+	SequentialWaves    int `json:"sequential_wave_count"`
+	ParallelWaves      int `json:"parallel_wave_count"`
+	CriticalPath       int `json:"critical_path"`
+	CIWallMS           int `json:"ci_wall_ms"`
+	CIBuildMS          int `json:"ci_build_ms"`
+	CITestMS           int `json:"ci_test_ms"`
+}
+
+type ProofSelection struct {
+	Choice    string `json:"choice"`
+	Driver    string `json:"driver"`
+	Outcome   string `json:"outcome"`
+	Guardrail string `json:"guardrail"`
 }
 
 type Origin struct {
@@ -131,6 +176,31 @@ type FootprintSummary struct {
 	EffectPost     []string          `json:"effect_post"`
 	Preconditions  map[string]string `json:"preconditions"`
 	Postconditions map[string]string `json:"postconditions"`
+	SemanticAuthorityID string `json:"semantic_authority_id"`
+	RepositoryIdentity string `json:"repository_identity"`
+	RepositoryWriter string `json:"repository_writer"`
+	ReadSet []string `json:"read_set"`
+	WriteSet []string `json:"write_set"`
+	ImmutableInputRelease ReleaseIdentity `json:"immutable_input_release"`
+	ExpectedOutputRelease ReleaseIdentity `json:"expected_output_release"`
+	AdoptionTarget string `json:"adoption_target"`
+	DependsOn []string `json:"depends_on"`
+	Proof ProofSelection `json:"proof"`
+}
+
+type EvolutionWave struct {
+	Ordinal       int      `json:"ordinal"`
+	CandidateIDs  []string `json:"candidate_ids"`
+	Parallel      bool     `json:"parallel"`
+	Final         bool     `json:"final"`
+	SingleWriter  string   `json:"single_writer,omitempty"`
+}
+
+type LaneResult struct {
+	CandidateID string `json:"candidate_id"`
+	State       string `json:"state"`
+	Decision    string `json:"decision"`
+	Unknown     *Unknown `json:"unknown,omitempty"`
 }
 
 type ArtifactSnapshot struct {
@@ -177,6 +247,12 @@ type CaseResult struct {
 	PromotedBundle       bool                `json:"promoted_bundle"`
 	Bundle               *ArtifactSnapshot   `json:"bundle,omitempty"`
 	Unknown              *Unknown            `json:"unknown,omitempty"`
+	Waves                []EvolutionWave     `json:"waves"`
+	Lanes                []LaneResult        `json:"lanes"`
+	SequentialWaveCount  int                 `json:"sequential_wave_count"`
+	ParallelWaveCount    int                 `json:"parallel_wave_count"`
+	CriticalPath         int                 `json:"critical_path"`
+	Proof                ProofSelection      `json:"proof"`
 }
 
 type Summary struct {
@@ -215,6 +291,25 @@ type Metrics struct {
 	Inventory  Inventory        `json:"inventory"`
 	Generated  GeneratedMetrics `json:"generated"`
 	Tests      TestMetrics      `json:"tests"`
+	SequentialWaveCount int `json:"sequential_wave_count"`
+	ParallelWaveCount int `json:"parallel_wave_count"`
+	CriticalPath int `json:"critical_path"`
+	CIWallMS int `json:"ci_wall_ms"`
+	CIBuildMS int `json:"ci_build_ms"`
+	CITestMS int `json:"ci_test_ms"`
+	ImprovementState string `json:"improvement_state"`
+	Improvement *ImprovementEvidence `json:"improvement"`
+}
+
+type ImprovementEvidence struct {
+	BeforeRelease ReleaseIdentity `json:"before_release"`
+	AfterRelease ReleaseIdentity `json:"after_release"`
+	SequentialWaveCount int `json:"sequential_wave_count"`
+	ParallelWaveCount int `json:"parallel_wave_count"`
+	CriticalPath int `json:"critical_path"`
+	CIWallMS int `json:"ci_wall_ms"`
+	CIBuildMS int `json:"ci_build_ms"`
+	CITestMS int `json:"ci_test_ms"`
 }
 
 type Authority struct {
@@ -224,6 +319,8 @@ type Authority struct {
 	MergeAuthority      int `json:"merge_authority"`
 	ReleaseMutation     int `json:"release_mutation"`
 	LocalTestExecutions int `json:"local_test_executions"`
+	OperatorAuthoring   int `json:"operator_authoring"`
+	CIRuntimeAuthority  int `json:"ci_runtime_authority"`
 }
 
 type Evidence struct {

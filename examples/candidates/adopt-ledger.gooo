@@ -1,0 +1,18 @@
+gooo rewrite_candidate v1
+candidate id=adopt-ledger type=typed_go_rewrite version=v1
+origin author=ledger-operator source=proposal-ledger-adoption
+semantic_authority_id gooo://lane/ledger-adopter
+repository_identity github.com/kimjooyoon/gooo-evolution-transaction-coordinator
+repository_writer ledger-single-writer
+read_set compiler/main.go
+write_set compiler/generated/ledger-adoption.go,gooo-self-improvement-ledger
+immutable_input_release repository=github.com/kimjooyoon/gooo-evolution-transaction-coordinator tag=v0.1.1 digest=sha256:9a83bccb0f6bd947d7d621a3a3f3f4059a505ebd7958d077ddd9c692e0ecf02b
+expected_output_release repository=github.com/kimjooyoon/gooo-evolution-transaction-coordinator tag=v0.2.0 digest=sha256:pending-v0.2.0
+adoption_target gooo-self-improvement-ledger
+depends_on add-label
+capability typed_rewrite
+effect pre=READ_INPUT post=WRITE_CALLER_OUTPUT
+footprint read=compiler/main.go write=compiler/generated/ledger-adoption.go
+precondition base=compiler-fixture-v1
+postcondition artifact=ledger-adoption
+operation kind=append artifact=compiler/generated/ledger-adoption.go value="const LedgerAdopted = true" success_terminal=FINAL_LEDGER_ADOPTION_EXACT

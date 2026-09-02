@@ -9,7 +9,7 @@ mkdir -p "$work/first-fixture" "$work/first-output" "$work/second-fixture" "$wor
 before=$(git status --porcelain=v1 -z --untracked-files=all | sha256sum | awk '{print $1}')
 "$bin" generate \
   --source .gooo/evolution-transaction-coordinator.gooo \
-  --contract contracts/denominator-v1.json \
+  --contract contracts/denominator-v2.json \
   --candidates-root examples/candidates \
   --fixture-root "$work/first-fixture" \
   --out "$work/first-output" \
@@ -19,27 +19,30 @@ test "$before" = "$after"
 
 "$bin" generate \
   --source .gooo/evolution-transaction-coordinator.gooo \
-  --contract contracts/denominator-v1.json \
+  --contract contracts/denominator-v2.json \
   --candidates-root examples/candidates \
   --fixture-root "$work/second-fixture" \
   --out "$work/second-output" \
   --source-root .
 
-test "$(find "$work/first-output" -type f | wc -l | tr -d ' ')" = 5
+test "$(find "$work/first-output" -type f | wc -l | tr -d ' ')" = 6
 jq -e '
-  .schema == "gooo/evolution-transaction-coordinator/evidence/v1" and
-  .fixed_case_count == 7 and
+  .schema == "gooo/evolution-transaction-coordinator/evidence/v2" and
+  .fixed_case_count == 8 and
   .precedence == ["REFUTED", "UNKNOWN", "CLOSED"] and
-  .summary == {generated:7,closed:3,unknown:1,refuted:3} and
-  .metrics.generated.files == 3 and
+  .summary == {generated:8,closed:4,unknown:1,refuted:3} and
+  .metrics.generated.files == 4 and
   .metrics.generated.bytes > 0 and
-  .metrics.tests == {total:7,selected:7,executed:7,reused:1,failed:3,unknown:1} and
-  .authority == {repository_writes:0,source_mutations:0,commit_authority:0,merge_authority:0,release_mutation:0,local_test_executions:0} and
-  .artifact_count == 5 and
-  ([.cases[] | select(.state == "CLOSED")] | length) == 3 and
+  .metrics.tests == {total:8,selected:8,executed:8,reused:1,failed:3,unknown:1} and
+  .authority == {repository_writes:0,source_mutations:0,commit_authority:0,merge_authority:0,release_mutation:0,local_test_executions:0,operator_authoring:0,ci_runtime_authority:0} and
+  .artifact_count == 6 and
+  ([.cases[] | select(.state == "CLOSED")] | length) == 4 and
   ([.cases[] | select(.state == "UNKNOWN")] | length) == 1 and
   ([.cases[] | select(.state == "REFUTED")] | length) == 3 and
-  ([.cases[] | select(.permutations | length != 2)] | length) == 0 and
+  ([.cases[] | select((.id != "case-08-final-ledger-adoption") and (.permutations | length != 2))] | length) == 0 and
+  ([.cases[] | select(.id == "case-08-final-ledger-adoption") | select((.permutations | length) == 1 and (.waves[-1].final == true) and (.waves[-1].candidate_ids | length) == 1)] | length) == 1 and
+  ([.cases[] | select(.id == "case-01-disjoint-commuting") | select((.waves | length) == 1 and .waves[0].parallel == true and (.waves[0].candidate_ids | length) == 2)] | length) == 1 and
+  ([.cases[] | select(.id == "case-06-missing-footprint") | select((.lanes[] | select(.candidate_id == "add-helper" and .state == "CLOSED")) and (.lanes[] | select(.candidate_id == "missing-footprint" and .state == "UNKNOWN")))] | length) == 1 and
   ([.cases[] | select(.state != "CLOSED" and (.atomic_abort != true or .promoted_bundle != false))] | length) == 0 and
   ([.cases[] | select(.state == "CLOSED" and (.bundle == null or .promoted_bundle != true))] | length) == 0 and
   ([.cases[] | select(.state != "CLOSED" and (.bundle != null))] | length) == 0 and
@@ -55,7 +58,7 @@ jq -e '
   .metrics.peak_rss_kib > 0
 ' "$work/first-output/evidence.json"
 
-test "$(find "$work/first-output/bundles" -type f | wc -l | tr -d ' ')" = 3
+test "$(find "$work/first-output/bundles" -type f | wc -l | tr -d ' ')" = 4
 test ! -e "$work/first-output/bundles/case-03-explicit-footprint-conflict"
 test ! -e "$work/first-output/bundles/case-04-order-dependent-terminal-reason"
 test ! -e "$work/first-output/bundles/case-05-forbidden-combined-effect"
