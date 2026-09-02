@@ -29,6 +29,9 @@ jobs:
         run: |
           set -euo pipefail
           files=$(gofmt -l $(git ls-files '*.go'))
+          if test -n "$files"; then
+            gofmt -d $files
+          fi
           test -z "$files"
       - name: Verify vet
         run: go vet ./...
@@ -46,6 +49,97 @@ jobs:
           name: gooo-evolution-transaction-coordinator-evidence-${{ github.run_id }}
           path: ${{ runner.temp }}/gooo-evolution-transaction-coordinator-evidence
           if-no-files-found: error
+
+  semantic-work-wave-planner:
+    runs-on: ubuntu-latest
+    env:
+      SUBJECT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SUBJECT_SHA }}
+      - uses: actions/setup-go@v6
+        id: setup-go
+        with:
+          go-version: 1.27.0
+          cache: true
+      - name: Verify Go 1.27
+        run: test "$(go env GOVERSION)" = "go1.27.0"
+      - name: Verify formatting
+        shell: bash
+        run: |
+          set -euo pipefail
+          files=$(gofmt -l $(git ls-files '*.go'))
+          if test -n "$files"; then
+            gofmt -d $files
+          fi
+          test -z "$files"
+      - name: Verify vet
+        run: go vet ./...
+      - name: Verify tests with metrics
+        shell: bash
+        run: |
+          set -euo pipefail
+          start=$(date +%s%3N)
+          /usr/bin/time -f '%M' -o "$RUNNER_TEMP/planner-test-rss" go test ./...
+          end=$(date +%s%3N)
+          echo "$start" > "$RUNNER_TEMP/planner-test-start"
+          echo "$end" > "$RUNNER_TEMP/planner-test-end"
+          echo "$(cat "$RUNNER_TEMP/planner-test-rss")" > "$RUNNER_TEMP/planner-test-rss-kib"
+      - name: Build planner with metrics
+        shell: bash
+        run: |
+          set -euo pipefail
+          start=$(date +%s%3N)
+          /usr/bin/time -f '%M' -o "$RUNNER_TEMP/planner-build-rss" go build -trimpath -o "$RUNNER_TEMP/gooo-semantic-work-wave-planner-bin" ./cmd/gooo-semantic-work-wave-planner
+          end=$(date +%s%3N)
+          echo "$start" > "$RUNNER_TEMP/planner-build-start"
+          echo "$end" > "$RUNNER_TEMP/planner-build-end"
+          echo "$(cat "$RUNNER_TEMP/planner-build-rss")" > "$RUNNER_TEMP/planner-build-rss-kib"
+      - name: Run semantic planner conformance
+        run: bash scripts/planner-conformance.sh "$RUNNER_TEMP/gooo-semantic-work-wave-planner-bin"
+      - name: Record planner CI metrics
+        shell: bash
+        env:
+          CACHE_HIT: ${{ steps.setup-go.outputs.cache-hit || 'unknown' }}
+        run: |
+          set -euo pipefail
+          test_start=$(cat "$RUNNER_TEMP/planner-test-start")
+          test_end=$(cat "$RUNNER_TEMP/planner-test-end")
+          build_start=$(cat "$RUNNER_TEMP/planner-build-start")
+          build_end=$(cat "$RUNNER_TEMP/planner-build-end")
+          wall_start=$((test_start < build_start ? test_start : build_start))
+          wall_end=$((test_end > build_end ? test_end : build_end))
+          jq -n \
+            --argjson wall_ms "$((wall_end - wall_start))" \
+            --argjson build_ms "$((build_end - build_start))" \
+            --argjson test_ms "$((test_end - test_start))" \
+            --argjson build_peak_rss_kib "$(cat "$RUNNER_TEMP/planner-build-rss-kib")" \
+            --argjson test_peak_rss_kib "$(cat "$RUNNER_TEMP/planner-test-rss-kib")" \
+            --arg cache_hit "$CACHE_HIT" \
+            '{state:"CLOSED",source:"github-actions",wall_ms:$wall_ms,build_ms:$build_ms,test_ms:$test_ms,build_peak_rss_kib:$build_peak_rss_kib,test_peak_rss_kib:$test_peak_rss_kib,cache_hit:$cache_hit}' \
+            > "$RUNNER_TEMP/gooo-semantic-work-wave-planner-evidence/ci-metrics.json"
+      - name: Publish planner dossier
+        run: cat "$RUNNER_TEMP/gooo-semantic-work-wave-planner-evidence/conformance-report.md" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload planner evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: gooo-semantic-work-wave-planner-evidence-${{ github.run_id }}
+          path: ${{ runner.temp }}/gooo-semantic-work-wave-planner-evidence
+          if-no-files-found: error
+
+  semantic-planner-audit:
+    needs: semantic-work-wave-planner
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: gooo-semantic-work-wave-planner-evidence-*
+          path: ${{ runner.temp }}/downloaded-planner-evidence
+          merge-multiple: true
+      - name: Run semantic planner audit
+        run: bash scripts/semantic-planner-audit.sh "$RUNNER_TEMP/downloaded-planner-evidence"
 
   semantic-audit:
     needs: conformance

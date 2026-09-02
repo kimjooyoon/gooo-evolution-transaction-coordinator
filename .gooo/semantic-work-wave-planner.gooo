@@ -1,0 +1,64 @@
+gooo semantic_work_wave_planner v1
+namespace gooo://semantic-work-wave-planner/v1
+
+# This source is the scheduling authority. Go parses it and projects the
+# declared evidence; it has no operation, repository, commit, merge, or
+# release mutation authority.
+semantic_authority_id gooo://semantic-work-wave-planner/v1
+repository_identity github.com/kimjooyoon/gooo-evolution-transaction-coordinator
+read_set .gooo/semantic-work-wave-planner.gooo,contracts/semantic-work-wave-planner-v1.json,fixtures/semantic-work-wave-planner
+write_set caller-owned-output
+immutable_input_release repository=github.com/kimjooyoon/gooo-evolution-transaction-coordinator tag=v0.2.2 digest=sha256:2be5728925e1b85950d88f820814476b995f699abd331e0b93ce5c9c2cff86c1
+expected_output_release repository=github.com/kimjooyoon/gooo-evolution-transaction-coordinator tag=v0.2.3 digest=sha256:pending-v0.2.3
+
+effect READ_INPUT
+effect WRITE_CALLER_OUTPUT
+effect REPOSITORY_WRITE
+effect CI_MUTATION
+effect COMMIT
+effect MERGE
+effect RELEASE_MUTATION
+capability semantic_planner READ_INPUT WRITE_CALLER_OUTPUT
+
+precedence REFUTED>UNKNOWN>CLOSED
+unknown_fields stage,step,reason,unknown_class,next_operation,blocked_by
+forbidden_authority REPOSITORY_WRITE CI_MUTATION COMMIT MERGE RELEASE_MUTATION EXECUTE
+conflict WRITE_WRITE
+conflict WRITE_READ
+conflict MUTABLE_AUTHORITY
+conflict SINGLE_LEDGER_WRITER
+conflict DEPENDENCY
+fixed_point FIXED_POINT
+proof FOUNDATION
+proof COHERENCE
+proof REGRESSION
+indicator DRIVER
+indicator OUTCOME
+indicator GUARDRAIL
+prohibition AGGREGATE_SCORE
+prohibition PERCENTAGE
+prohibition HEURISTIC_OPTIMIZATION
+runtime_authority repository_writes=0 source_mutations=0 commit_authority=0 merge_authority=0 release_mutation=0 execution_authority=0 local_test_executions=0 local_format_executions=0
+
+denominator id=semantic-work-wave-planner-v1 cell_count=10
+meta_activity id=parse_input stage=INPUT output=parsed_input
+meta_activity id=validate_identity stage=IDENTITY output=identity_receipt
+meta_activity id=validate_release stage=RELEASE output=immutable_release_receipt
+meta_activity id=validate_footprint stage=FOOTPRINT output=footprint_receipt
+meta_activity id=validate_authority stage=AUTHORITY output=authority_receipt
+meta_activity id=validate_dependencies stage=DEPENDENCY output=dependency_receipt
+meta_activity id=detect_conflicts stage=CONFLICT output=serialized_boundaries
+meta_activity id=project_frontier stage=FRONTIER output=blocked_causal_frontier
+meta_activity id=plan_waves stage=SCHEDULE output=parallel_waves
+meta_activity id=emit_evidence stage=OUTPUT output=rationale_dossier
+
+case ordinal=1 id=case-01-disjoint-read-only expected=CLOSED corpus=case-01-disjoint-read-only.json proof_choice=FOUNDATION indicator_class=DRIVER
+case ordinal=2 id=case-02-write-read-serialization expected=CLOSED corpus=case-02-write-read-serialization.json proof_choice=COHERENCE indicator_class=OUTCOME
+case ordinal=3 id=case-03-final-ledger-writer expected=CLOSED corpus=case-03-final-ledger-writer.json proof_choice=REGRESSION indicator_class=GUARDRAIL
+case ordinal=4 id=case-04-missing-footprint expected=UNKNOWN corpus=case-04-missing-footprint.json proof_choice=FOUNDATION indicator_class=OUTCOME
+case ordinal=5 id=case-05-missing-dependency expected=UNKNOWN corpus=case-05-missing-dependency.json proof_choice=COHERENCE indicator_class=DRIVER
+case ordinal=6 id=case-06-missing-authority expected=UNKNOWN corpus=case-06-missing-authority.json proof_choice=REGRESSION indicator_class=GUARDRAIL
+case ordinal=7 id=case-07-forged-identity expected=REFUTED corpus=case-07-forged-identity.json proof_choice=COHERENCE indicator_class=GUARDRAIL
+case ordinal=8 id=case-08-forbidden-authority expected=REFUTED corpus=case-08-forbidden-authority.json proof_choice=REGRESSION indicator_class=DRIVER
+case ordinal=9 id=case-09-cycle expected=REFUTED corpus=case-09-cycle.json proof_choice=FOUNDATION indicator_class=OUTCOME
+case ordinal=10 id=case-10-forced-concurrent-writes expected=REFUTED corpus=case-10-forced-concurrent-writes.json proof_choice=COHERENCE indicator_class=GUARDRAIL

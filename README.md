@@ -9,6 +9,46 @@ wave planner, proof selections, atomic-abort policy, and candidate-bundle
 emission rule. Go is the parser, lowerer, fixture
 executor, and exact-vector verifier.
 
+## Semantic work-wave planner
+
+This repository is also the authoritative home of the independent semantic
+work-wave planner. Its source is
+[`semantic-work-wave-planner.gooo`](.gooo/semantic-work-wave-planner.gooo),
+not an inference prompt: candidate operation identities, immutable release
+digests, dependency edges, semantic read/write sets, authority scopes, and
+target repository/ledger identities are explicit input evidence.
+
+The planner emits exact parallel waves, serialized boundaries, a blocked causal
+frontier, single-writer cells, denied operations, a deterministic semantic
+vector digest, and a human rationale dossier. `WRITE_WRITE`, `WRITE_READ`,
+shared mutable authority, dependency, and single-ledger-writer evidence are
+never placed in the same wave. Explicit disjoint read-only operations remain
+parallel candidates. Missing footprint/dependency/authority evidence is
+`UNKNOWN` with exactly six fields; forged identity, forbidden authority,
+cycles, and forced concurrent conflicts are `REFUTED`.
+
+```text
+gooo-semantic-work-wave-planner conformance \
+  --source .gooo/semantic-work-wave-planner.gooo \
+  --contract contracts/semantic-work-wave-planner-v1.json \
+  --corpus fixtures/semantic-work-wave-planner \
+  --source-root . \
+  --out /caller-owned/output
+```
+
+The semantic plan is byte-identical on replay of the same immutable input.
+The planner has runtime mutation authority `0`; it does not execute candidate
+operations or mutate a repository, commit, merge, or release. `FIXED_POINT`,
+`FOUNDATION`/`COHERENCE`/`REGRESSION`, and
+`DRIVER`/`OUTCOME`/`GUARDRAIL` are separate declared dimensions. No aggregate
+score, percentage, or heuristic optimization is emitted. Improvement remains
+`null` plus `UNKNOWN` unless exact matched before/after evidence is supplied.
+
+The planner's fixed denominator contains ten corpus cases: three normal
+closures, three UNKNOWN frontiers, and four REFUTED boundaries. GitHub Actions
+is the only validation authority for this product and records build/test/wall/
+RSS/cache metrics; root `README.md` is excluded from the exact inventory.
+
 The coordinator computes each candidate's origin, capabilities, effect
 preconditions/postconditions, and read/write semantic footprint. It enumerates
 every candidate permutation and applies it to a fresh copy of the compiler
