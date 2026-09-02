@@ -1,0 +1,11 @@
+{
+  "schema": "gooo/semantic-work-wave-planner/input/v1",
+  "version": "v1",
+  "input_release": {"repository": "github.com/kimjooyoon/gooo-evolution-transaction-coordinator", "tag": "v0.2.2", "digest": "sha256:2be5728925e1b85950d88f820814476b995f699abd331e0b93ce5c9c2cff86c1"},
+  "target": {"repository": "github.com/kimjooyoon/gooo-evolution-transaction-coordinator", "ledger": "none"},
+  "dependency_edges": [{"before": "cycle-a", "after": "cycle-b"}, {"before": "cycle-b", "after": "cycle-a"}],
+  "candidates": [
+    {"operation_identity": {"candidate_id": "cycle-a", "operation_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000081", "kind": "rewrite", "origin": "proposal-a"}, "immutable_input_release": {"repository": "github.com/kimjooyoon/gooo-evolution-transaction-coordinator", "tag": "v0.2.2", "digest": "sha256:2be5728925e1b85950d88f820814476b995f699abd331e0b93ce5c9c2cff86c1"}, "semantic_read_set": ["immutable/a"], "semantic_write_set": ["semantic/a"], "authority_scope": {"permissions": ["READ_INPUT", "WRITE_CALLER_OUTPUT"], "mutable_authority": "authority-a", "writes_ledger": false, "runtime_mutation_authority": 0}, "target": {"repository": "github.com/kimjooyoon/gooo-evolution-transaction-coordinator", "ledger": "none"}},
+    {"operation_identity": {"candidate_id": "cycle-b", "operation_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000082", "kind": "rewrite", "origin": "proposal-b"}, "immutable_input_release": {"repository": "github.com/kimjooyoon/gooo-evolution-transaction-coordinator", "tag": "v0.2.2", "digest": "sha256:2be5728925e1b85950d88f820814476b995f699abd331e0b93ce5c9c2cff86c1"}, "semantic_read_set": ["immutable/b"], "semantic_write_set": ["semantic/b"], "authority_scope": {"permissions": ["READ_INPUT", "WRITE_CALLER_OUTPUT"], "mutable_authority": "authority-b", "writes_ledger": false, "runtime_mutation_authority": 0}, "target": {"repository": "github.com/kimjooyoon/gooo-evolution-transaction-coordinator", "ledger": "none"}}
+  ]
+}

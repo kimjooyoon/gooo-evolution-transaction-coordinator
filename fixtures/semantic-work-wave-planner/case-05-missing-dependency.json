@@ -1,0 +1,10 @@
+{
+  "schema": "gooo/semantic-work-wave-planner/input/v1",
+  "version": "v1",
+  "input_release": {"repository": "github.com/kimjooyoon/gooo-evolution-transaction-coordinator", "tag": "v0.2.2", "digest": "sha256:2be5728925e1b85950d88f820814476b995f699abd331e0b93ce5c9c2cff86c1"},
+  "target": {"repository": "github.com/kimjooyoon/gooo-evolution-transaction-coordinator", "ledger": "none"},
+  "candidates": [
+    {"operation_identity": {"candidate_id": "dependency-alpha", "operation_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000041", "kind": "rewrite", "origin": "proposal-alpha"}, "immutable_input_release": {"repository": "github.com/kimjooyoon/gooo-evolution-transaction-coordinator", "tag": "v0.2.2", "digest": "sha256:2be5728925e1b85950d88f820814476b995f699abd331e0b93ce5c9c2cff86c1"}, "semantic_read_set": ["immutable/alpha"], "semantic_write_set": ["semantic/alpha"], "authority_scope": {"permissions": ["READ_INPUT", "WRITE_CALLER_OUTPUT"], "mutable_authority": "alpha-authority", "writes_ledger": false, "runtime_mutation_authority": 0}, "target": {"repository": "github.com/kimjooyoon/gooo-evolution-transaction-coordinator", "ledger": "none"}},
+    {"operation_identity": {"candidate_id": "dependency-beta", "operation_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000042", "kind": "rewrite", "origin": "proposal-beta"}, "immutable_input_release": {"repository": "github.com/kimjooyoon/gooo-evolution-transaction-coordinator", "tag": "v0.2.2", "digest": "sha256:2be5728925e1b85950d88f820814476b995f699abd331e0b93ce5c9c2cff86c1"}, "semantic_read_set": ["immutable/beta"], "semantic_write_set": ["semantic/beta"], "authority_scope": {"permissions": ["READ_INPUT", "WRITE_CALLER_OUTPUT"], "mutable_authority": "beta-authority", "writes_ledger": false, "runtime_mutation_authority": 0}, "target": {"repository": "github.com/kimjooyoon/gooo-evolution-transaction-coordinator", "ledger": "none"}}
+  ]
+}

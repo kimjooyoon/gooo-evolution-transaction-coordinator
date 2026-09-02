@@ -1,0 +1,11 @@
+{
+  "schema": "gooo/semantic-work-wave-planner/input/v1",
+  "version": "v1",
+  "input_release": {"repository": "github.com/kimjooyoon/gooo-evolution-transaction-coordinator", "tag": "v0.2.2", "digest": "sha256:2be5728925e1b85950d88f820814476b995f699abd331e0b93ce5c9c2cff86c1"},
+  "target": {"repository": "github.com/kimjooyoon/gooo-evolution-transaction-coordinator", "ledger": "gooo-self-improvement-ledger"},
+  "dependency_edges": [],
+  "candidates": [
+    {"operation_identity": {"candidate_id": "independent", "operation_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000021", "kind": "rewrite", "origin": "proposal-independent"}, "immutable_input_release": {"repository": "github.com/kimjooyoon/gooo-evolution-transaction-coordinator", "tag": "v0.2.2", "digest": "sha256:2be5728925e1b85950d88f820814476b995f699abd331e0b93ce5c9c2cff86c1"}, "semantic_read_set": ["immutable/input"], "semantic_write_set": ["semantic/independent-cell"], "authority_scope": {"permissions": ["READ_INPUT", "WRITE_CALLER_OUTPUT"], "mutable_authority": "independent-authority", "writes_ledger": false, "runtime_mutation_authority": 0}, "target": {"repository": "github.com/kimjooyoon/gooo-evolution-transaction-coordinator", "ledger": "gooo-self-improvement-ledger"}},
+    {"operation_identity": {"candidate_id": "adopt", "operation_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000022", "kind": "ledger_adoption", "origin": "proposal-ledger"}, "immutable_input_release": {"repository": "github.com/kimjooyoon/gooo-evolution-transaction-coordinator", "tag": "v0.2.2", "digest": "sha256:2be5728925e1b85950d88f820814476b995f699abd331e0b93ce5c9c2cff86c1"}, "semantic_read_set": ["immutable/input"], "semantic_write_set": ["ledger/cell/semantic-work-wave-planner"], "authority_scope": {"permissions": ["READ_INPUT", "WRITE_CALLER_OUTPUT"], "mutable_authority": "ledger-authority", "ledger_writer": "ledger-single-writer", "writes_ledger": true, "runtime_mutation_authority": 0}, "target": {"repository": "github.com/kimjooyoon/gooo-evolution-transaction-coordinator", "ledger": "gooo-self-improvement-ledger"}}
+  ]
+}

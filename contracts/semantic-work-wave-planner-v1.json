@@ -1,0 +1,20 @@
+{
+  "schema": "gooo/semantic-work-wave-planner/denominator/v1",
+  "id": "semantic-work-wave-planner-v1",
+  "version": "v1",
+  "cell_count": 10,
+  "fixed": true,
+  "append_only_from": "contracts/denominator-v2.json",
+  "cases": [
+    {"ordinal": 1, "id": "case-01-disjoint-read-only", "expected": "CLOSED", "corpus": "case-01-disjoint-read-only.json", "proof_choice": "FOUNDATION", "indicator_class": "DRIVER"},
+    {"ordinal": 2, "id": "case-02-write-read-serialization", "expected": "CLOSED", "corpus": "case-02-write-read-serialization.json", "proof_choice": "COHERENCE", "indicator_class": "OUTCOME"},
+    {"ordinal": 3, "id": "case-03-final-ledger-writer", "expected": "CLOSED", "corpus": "case-03-final-ledger-writer.json", "proof_choice": "REGRESSION", "indicator_class": "GUARDRAIL"},
+    {"ordinal": 4, "id": "case-04-missing-footprint", "expected": "UNKNOWN", "corpus": "case-04-missing-footprint.json", "proof_choice": "FOUNDATION", "indicator_class": "OUTCOME"},
+    {"ordinal": 5, "id": "case-05-missing-dependency", "expected": "UNKNOWN", "corpus": "case-05-missing-dependency.json", "proof_choice": "COHERENCE", "indicator_class": "DRIVER"},
+    {"ordinal": 6, "id": "case-06-missing-authority", "expected": "UNKNOWN", "corpus": "case-06-missing-authority.json", "proof_choice": "REGRESSION", "indicator_class": "GUARDRAIL"},
+    {"ordinal": 7, "id": "case-07-forged-identity", "expected": "REFUTED", "corpus": "case-07-forged-identity.json", "proof_choice": "COHERENCE", "indicator_class": "GUARDRAIL"},
+    {"ordinal": 8, "id": "case-08-forbidden-authority", "expected": "REFUTED", "corpus": "case-08-forbidden-authority.json", "proof_choice": "REGRESSION", "indicator_class": "DRIVER"},
+    {"ordinal": 9, "id": "case-09-cycle", "expected": "REFUTED", "corpus": "case-09-cycle.json", "proof_choice": "FOUNDATION", "indicator_class": "OUTCOME"},
+    {"ordinal": 10, "id": "case-10-forced-concurrent-writes", "expected": "REFUTED", "corpus": "case-10-forced-concurrent-writes.json", "proof_choice": "COHERENCE", "indicator_class": "GUARDRAIL"}
+  ]
+}

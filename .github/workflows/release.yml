@@ -43,13 +43,21 @@ jobs:
           go vet ./...
           go test ./...
           go build -trimpath -o "$RUNNER_TEMP/gooo-evolution-transaction-coordinator-bin" ./cmd/gooo-evolution-transaction-coordinator
+          go build -trimpath -o "$RUNNER_TEMP/gooo-semantic-work-wave-planner-bin" ./cmd/gooo-semantic-work-wave-planner
       - name: Generate CI evidence asset
         run: bash scripts/conformance.sh "$RUNNER_TEMP/gooo-evolution-transaction-coordinator-bin"
+      - name: Generate semantic planner evidence asset
+        run: bash scripts/planner-conformance.sh "$RUNNER_TEMP/gooo-semantic-work-wave-planner-bin"
+      - name: Assemble release evidence
+        run: |
+          mkdir -p "$RUNNER_TEMP/gooo-evolution-transaction-coordinator-release/coordinator" "$RUNNER_TEMP/gooo-evolution-transaction-coordinator-release/planner"
+          cp -R "$RUNNER_TEMP/gooo-evolution-transaction-coordinator-evidence/." "$RUNNER_TEMP/gooo-evolution-transaction-coordinator-release/coordinator/"
+          cp -R "$RUNNER_TEMP/gooo-semantic-work-wave-planner-evidence/." "$RUNNER_TEMP/gooo-evolution-transaction-coordinator-release/planner/"
       - name: Package evidence
         id: package
         run: |
           asset="$RUNNER_TEMP/gooo-evolution-transaction-coordinator-${{ inputs.tag }}-ci-evidence.tgz"
-          tar -czf "$asset" -C "$RUNNER_TEMP/gooo-evolution-transaction-coordinator-evidence" .
+          tar -czf "$asset" -C "$RUNNER_TEMP/gooo-evolution-transaction-coordinator-release" .
           echo "asset=$asset" >> "$GITHUB_OUTPUT"
       - name: Create draft release
         env:
