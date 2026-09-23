@@ -62,20 +62,20 @@ func TestPreflightPropagatesDependencyFrontierToFixedPoint(t *testing.T) {
 		candidate.WriteSet = []string{"write/" + id}
 		candidate.ImmutableInputRelease.Repository = "input"
 		candidate.ImmutableInputRelease.Tag = "v1"
-		candidate.ImmutableInputRelease.Digest = "digest"
+		candidate.ImmutableInputRelease.Digest = "sha256:input"
 		candidate.ExpectedOutputRelease.Repository = "output"
 		candidate.ExpectedOutputRelease.Tag = "v1"
-		candidate.ExpectedOutputRelease.Digest = "digest-out"
+		candidate.ExpectedOutputRelease.Digest = "sha256:output"
 		candidate.AdoptionTarget = "ledger/" + id
 		return candidate
 	}
 	var meta MetaSource
 	meta.ImmutableInputRelease.Repository = "input"
 	meta.ImmutableInputRelease.Tag = "v1"
-	meta.ImmutableInputRelease.Digest = "digest"
+	meta.ImmutableInputRelease.Digest = "sha256:input"
 	meta.ExpectedOutputRelease.Repository = "output"
 	meta.ExpectedOutputRelease.Tag = "v1"
-	meta.ExpectedOutputRelease.Digest = "digest-out"
+	meta.ExpectedOutputRelease.Digest = "sha256:output"
 
 	lanes := preflightLanes(meta, []Candidate{
 		valid("top", "middle"),
