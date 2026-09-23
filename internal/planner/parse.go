@@ -219,11 +219,16 @@ func ValidateDeclarations(meta MetaSource, contract Contract) error {
 	if len(meta.Cases) != FixedCaseCount || len(contract.Cases) != FixedCaseCount {
 		return fmt.Errorf("expected exactly %d fixed corpus cases", FixedCaseCount)
 	}
+	seenCaseIDs := map[string]bool{}
 	for index := 0; index < FixedCaseCount; index++ {
 		left, right := meta.Cases[index], contract.Cases[index]
 		if left.Ordinal != index+1 || right.Ordinal != index+1 || left.ID == "" || left.ID != right.ID || left.Expected != right.Expected || left.Corpus != right.Corpus || left.ProofChoice != right.ProofChoice || left.IndicatorClass != right.IndicatorClass || !validState(left.Expected) || !validProofChoice(left.ProofChoice) || !validIndicator(left.IndicatorClass) {
 			return fmt.Errorf("fixed case %d does not match the declared contract", index+1)
 		}
+		if seenCaseIDs[left.ID] {
+			return fmt.Errorf("duplicate fixed case id %q", left.ID)
+		}
+		seenCaseIDs[left.ID] = true
 	}
 	return nil
 }

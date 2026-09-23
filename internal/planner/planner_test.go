@@ -79,3 +79,18 @@ func TestForcedConcurrentWriteIsRefuted(t *testing.T) {
 		t.Fatalf("got state=%s denied=%#v", plan.State, plan.DeniedOperations)
 	}
 }
+
+func TestValidateDeclarationsRejectsDuplicateCaseIDs(t *testing.T) {
+	meta, err := ParseMeta("../../.gooo/semantic-work-wave-planner.gooo")
+	if err != nil {
+		t.Fatal(err)
+	}
+	contract, err := LoadContract("../../contracts/semantic-work-wave-planner-v1.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	meta.Cases[1].ID = meta.Cases[0].ID
+	if err := ValidateDeclarations(meta, contract); err == nil {
+		t.Fatal("duplicate fixed case ID was accepted")
+	}
+}
