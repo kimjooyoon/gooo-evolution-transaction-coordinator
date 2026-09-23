@@ -51,13 +51,26 @@ func TestMissingFootprintCarriesSixFieldUnknown(t *testing.T) {
 func TestPreflightPropagatesDependencyFrontierToFixedPoint(t *testing.T) {
 	valid := func(id string, dependsOn ...string) Candidate {
 		return Candidate{
-			ID: id, DependsOn: dependsOn,
-			ReadFootprint: []string{"source/" + id}, WriteFootprint: []string{"generated/" + id},
-			SemanticAuthorityID: "authority/" + id, RepositoryIdentity: "repo/" + id, RepositoryWriter: "writer/" + id,
-			ReadSet: []string{"read/" + id}, WriteSet: []string{"write/" + id},
-			ImmutableInputRelease: ReleaseIdentity{Repository: "input/" + id, Tag: "v1", Digest: "digest/" + id},
-			ExpectedOutputRelease: ReleaseIdentity{Repository: "output/" + id, Tag: "v1", Digest: "digest-out/" + id},
-			AdoptionTarget:         "ledger/" + id,
+			ID:            id,
+			DependsOn:     dependsOn,
+			ReadFootprint: []string{"source/" + id},
+			WriteFootprint: []string{"generated/" + id},
+			SemanticAuthorityID: "authority/" + id,
+			RepositoryIdentity:  "repo/" + id,
+			RepositoryWriter:    "writer/" + id,
+			ReadSet:              []string{"read/" + id},
+			WriteSet:             []string{"write/" + id},
+			ImmutableInputRelease: ReleaseIdentity{
+				Repository: "input/" + id,
+				Tag:        "v1",
+				Digest:     "digest/" + id,
+			},
+			ExpectedOutputRelease: ReleaseIdentity{
+				Repository: "output/" + id,
+				Tag:        "v1",
+				Digest:     "digest-out/" + id,
+			},
+			AdoptionTarget: "ledger/" + id,
 		}
 	}
 	lanes := preflightLanes(MetaSource{}, []Candidate{
