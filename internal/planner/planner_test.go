@@ -94,3 +94,9 @@ func TestValidateDeclarationsRejectsDuplicateCaseIDs(t *testing.T) {
 		t.Fatal("duplicate fixed case ID was accepted")
 	}
 }
+
+func TestKeyValuesRejectsDuplicateKeys(t *testing.T) {
+	if _, err := keyValues([]string{"id=first", "id=second"}); err == nil {
+		t.Fatal("duplicate key was accepted")
+	}
+}

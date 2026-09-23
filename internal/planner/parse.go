@@ -312,6 +312,9 @@ func keyValues(fields []string) (map[string]string, error) {
 		if len(parts) != 2 || parts[0] == "" {
 			return nil, fmt.Errorf("invalid key/value %q", field)
 		}
+		if _, exists := values[parts[0]]; exists {
+			return nil, fmt.Errorf("duplicate key %q", parts[0])
+		}
 		values[parts[0]] = strings.Trim(parts[1], "\"")
 	}
 	return values, nil
