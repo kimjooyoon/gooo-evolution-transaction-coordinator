@@ -60,16 +60,24 @@ func TestPreflightPropagatesDependencyFrontierToFixedPoint(t *testing.T) {
 		candidate.RepositoryWriter = "writer/" + id
 		candidate.ReadSet = []string{"read/" + id}
 		candidate.WriteSet = []string{"write/" + id}
-		candidate.ImmutableInputRelease.Repository = "input/" + id
-		candidate.ImmutableInputRelease.Tag = "v1"
-		candidate.ImmutableInputRelease.Digest = "digest/" + id
-		candidate.ExpectedOutputRelease.Repository = "output/" + id
-		candidate.ExpectedOutputRelease.Tag = "v1"
-		candidate.ExpectedOutputRelease.Digest = "digest-out/" + id
+        candidate.ImmutableInputRelease.Repository = "input"
+        candidate.ImmutableInputRelease.Tag = "v1"
+        candidate.ImmutableInputRelease.Digest = "digest"
+        candidate.ExpectedOutputRelease.Repository = "output"
+        candidate.ExpectedOutputRelease.Tag = "v1"
+        candidate.ExpectedOutputRelease.Digest = "digest-out"
 		candidate.AdoptionTarget = "ledger/" + id
 		return candidate
 	}
-	lanes := preflightLanes(MetaSource{}, []Candidate{
+    var meta MetaSource
+    meta.ImmutableInputRelease.Repository = "input"
+    meta.ImmutableInputRelease.Tag = "v1"
+    meta.ImmutableInputRelease.Digest = "digest"
+    meta.ExpectedOutputRelease.Repository = "output"
+    meta.ExpectedOutputRelease.Tag = "v1"
+    meta.ExpectedOutputRelease.Digest = "digest-out"
+
+    lanes := preflightLanes(meta, []Candidate{
 		valid("top", "middle"),
 		{ID: "middle", DependsOn: []string{"bottom"}},
 		valid("bottom"),
