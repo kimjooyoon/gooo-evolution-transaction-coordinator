@@ -215,13 +215,33 @@ func preflightLanes(meta MetaSource, candidates []Candidate) []LaneResult {
 		state, unknown := lanePreflight(meta, candidate)
 		states[candidate.ID], unknowns[candidate.ID] = state, unknown
 	}
-	for _, candidate := range candidates {
-		if states[candidate.ID] == StateClosed {
+	changed := true
+	for changed {
+		changed = false
+		for _, candidate := range candidates {
+			state := states[candidate.ID]
+			blockedBy := ""
 			for _, dependency := range candidate.DependsOn {
-				if states[dependency] == StateUnknown || states[dependency] == StateRefuted {
-					states[candidate.ID] = states[dependency]
-					unknowns[candidate.ID] = &Unknown{Stage: "DEPENDENCY", Step: "advance_causal_frontier", Reason: "CAUSAL_DEPENDENCY_BLOCKED", UnknownClass: "CAUSAL_DEPENDENCY_FRONTIER", NextOperation: "RESOLVE_BLOCKED_DEPENDENCY", BlockedBy: []string{dependency}}
+				dependencyState := states[dependency]
+				if dependencyState == StateRefuted {
+					state = StateRefuted
+					blockedBy = dependency
+					break
 				}
+				if dependencyState == StateUnknown && state == StateClosed {
+					state = StateUnknown
+					blockedBy = dependency
+				}
+			}
+			if state == states[candidate.ID] {
+				continue
+			}
+			states[candidate.ID] = state
+			changed = true
+			if state == StateRefuted {
+				unknowns[candidate.ID] = nil
+			} else {
+				unknowns[candidate.ID] = &Unknown{Stage: "DEPENDENCY", Step: "advance_causal_frontier", Reason: "CAUSAL_DEPENDENCY_BLOCKED", UnknownClass: "CAUSAL_DEPENDENCY_FRONTIER", NextOperation: "RESOLVE_BLOCKED_DEPENDENCY", BlockedBy: []string{blockedBy}}
 			}
 		}
 	}

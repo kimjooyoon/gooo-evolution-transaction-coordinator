@@ -47,3 +47,29 @@ func TestMissingFootprintCarriesSixFieldUnknown(t *testing.T) {
 		t.Fatalf("incomplete unknown tuple: %#v", unknown)
 	}
 }
+
+func TestPreflightPropagatesDependencyFrontierToFixedPoint(t *testing.T) {
+	valid := func(id string, dependsOn ...string) Candidate {
+		return Candidate{
+			ID: id, DependsOn: dependsOn,
+			ReadFootprint: []string{"source/" + id}, WriteFootprint: []string{"generated/" + id},
+			SemanticAuthorityID: "authority/" + id, RepositoryIdentity: "repo/" + id, RepositoryWriter: "writer/" + id,
+			ReadSet: []string{"read/" + id}, WriteSet: []string{"write/" + id},
+			ImmutableInputRelease: ReleaseIdentity{Repository: "input/" + id, Tag: "v1", Digest: "digest/" + id},
+			ExpectedOutputRelease: ReleaseIdentity{Repository: "output/" + id, Tag: "v1", Digest: "digest-out/" + id},
+			AdoptionTarget: "ledger/" + id,
+		}
+	}
+	lanes := preflightLanes(MetaSource{}, []Candidate{
+		valid("top", "middle"),
+		{ID: "middle", DependsOn: []string{"bottom"}},
+		valid("bottom"),
+	})
+	states := map[string]string{}
+	for _, lane := range lanes {
+		states[lane.CandidateID] = lane.State
+	}
+	if states["top"] != StateUnknown || states["middle"] != StateUnknown {
+		t.Fatalf("dependency frontier did not reach fixed point: %#v", states)
+	}
+}
