@@ -47,3 +47,13 @@ func TestMissingFootprintCarriesSixFieldUnknown(t *testing.T) {
 		t.Fatalf("incomplete unknown tuple: %#v", unknown)
 	}
 }
+
+func TestKeyValuesRejectsDuplicateKeys(t *testing.T) {
+	if _, err := keyValues([]string{"id=first", "id=second"}); err == nil {
+		t.Fatal("duplicate key accepted")
+	}
+	values, err := keyValues([]string{"id=first", "kind=normal"})
+	if err != nil || values["id"] != "first" || values["kind"] != "normal" {
+		t.Fatalf("valid key/value fields rejected: values=%v err=%v", values, err)
+	}
+}
