@@ -57,7 +57,7 @@ func TestPreflightPropagatesDependencyFrontierToFixedPoint(t *testing.T) {
 			ReadSet: []string{"read/" + id}, WriteSet: []string{"write/" + id},
 			ImmutableInputRelease: ReleaseIdentity{Repository: "input/" + id, Tag: "v1", Digest: "digest/" + id},
 			ExpectedOutputRelease: ReleaseIdentity{Repository: "output/" + id, Tag: "v1", Digest: "digest-out/" + id},
-			AdoptionTarget: "ledger/" + id,
+			AdoptionTarget:         "ledger/" + id,
 		}
 	}
 	lanes := preflightLanes(MetaSource{}, []Candidate{
